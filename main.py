@@ -4,6 +4,9 @@ import os
 from selenium import webdriver
 from string import ascii_uppercase
 from selenium.webdriver.chrome.options import Options
+import statistics
+
+from faculties import Faculty
 
 options = Options()
 options.headless = True
@@ -13,7 +16,8 @@ driver_path = '{0}\\bin\\chromedriver.exe'.format(os.path.dirname(os.path.abspat
 browser = webdriver.Chrome(executable_path=driver_path, options=options)
 
 
-def get_authors_ids(faculty_id, by_department=None):
+def get_authors_ids(faculty, by_department=None):
+    faculty_id = faculty.value
     authors_links = []
     letters = ascii_uppercase + "ĆŚŹŻŁ"
     for char in letters:
@@ -52,6 +56,8 @@ def get_pages_navs_buttons():
 
 def run(authorsIds, fromYear, toYear):
     file = open('result.txt', 'w', encoding='utf8')
+    department_points = []
+
     for authorId in authorsIds:
         sum_points = 0
         pubs_list_filtered_url = 'https://bpp.agh.edu.pl/autor/?idA={0}&idform=1&afi=1&f1Search=1&fodR={1}&fdoR={2}&fagTP=0&fagPM=on'.format(
@@ -100,16 +106,20 @@ def run(authorsIds, fromYear, toYear):
         print(log)
         log = '{0}\t{1}'.format(author_name, sum_points)
         file.write(log + "\n")
+        department_points.append(sum_points)
     browser.quit()
     file.close()
-
+    median = statistics.median(department_points)
+    mean = statistics.mean(department_points)
+    print('Median for specific criteria: {0}\Average points: {1}'.format(median, mean))
 
 if __name__ == "__main__":
     ################### PARAMS ####################
     fromYear = 2017
     toYear = 2018
-    faculty = 2     # WIMiIP
-    department = 'WIMiIP-kism'
+    faculty = Faculty.InformatykiElektronikiITelekomunikacji
+    department = None
+    # department = 'WIMiIP-kism'
     ###############################################
 
     print('Fetching faculty staff... ')
