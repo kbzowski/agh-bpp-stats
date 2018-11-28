@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+import pprint
 import re
 import os
 from selenium import webdriver
@@ -54,14 +55,14 @@ def get_pages_navs_buttons():
     return [p for p in pages if 'pozycje' in p.get_attribute("title")]
 
 
-def run(authorsIds, fromYear, toYear):
+def run(authors_ids, from_year, to_year):
     file = open('result.txt', 'w', encoding='utf8')
     department_points = []
 
-    for authorId in authorsIds:
+    for authorId in authors_ids:
         sum_points = 0
         pubs_list_filtered_url = 'https://bpp.agh.edu.pl/autor/?idA={0}&idform=1&afi=1&f1Search=1&fodR={1}&fdoR={2}&fagTP=0&fagPM=on'.format(
-            authorId, fromYear, toYear)
+            authorId, from_year, to_year)
         browser.get(pubs_list_filtered_url)
         author_name = browser.find_element_by_css_selector('h2').text
 
@@ -111,18 +112,19 @@ def run(authorsIds, fromYear, toYear):
     file.close()
     median = statistics.median(department_points)
     mean = statistics.mean(department_points)
-    print('Median for specific criteria: {0}\Average points: {1}'.format(median, mean))
+    print('Median for specific criteria: {0}\nAverage points: {1}'.format(median, mean))
+
 
 if __name__ == "__main__":
     ################### PARAMS ####################
-    fromYear = 2017
-    toYear = 2018
-    faculty = Faculty.InformatykiElektronikiITelekomunikacji
-    department = None
-    # department = 'WIMiIP-kism'
+    FROM_YEAR = 2017
+    TO_YEAR = 2018
+    FACULTY = Faculty.WIMiIP
+    DEPARTMENT = None
+    # DEPARTMENT = 'WIMiIP-kism'
     ###############################################
 
     print('Fetching faculty staff... ')
-    authorsIds = get_authors_ids(faculty, department)
-    # authorsIds = ['05854']
-    run(authorsIds, fromYear, toYear)
+    authors_ids = get_authors_ids(FACULTY, DEPARTMENT)
+    # authors_ids = ['05854']       // For specific author
+    run(authors_ids, FROM_YEAR, TO_YEAR)
