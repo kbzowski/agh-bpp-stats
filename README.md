@@ -6,7 +6,7 @@ It can be easly replaced by BeautifulSoup and request if you want :)
 
 Requires Python 3 and Windows (for Linux you need to replace chromedriver for appropriate version)
 
-## Install
+## Installation
 
 1. Install Python 3 (if you don't have it already)
 2. Install pipenv (if you don't have it already): `pip install pipenv` 
@@ -15,5 +15,10 @@ Requires Python 3 and Windows (for Linux you need to replace chromedriver for ap
 5. Run script: `python main.py`
 
 ## Config
-You can adjust faculty and range of years.
-Department parameter is string - correct value can be check on BPP next to employee name.
+Some configuration is possible through the parameter section at the bottom of the script.
+You can filter by faculty and range of years.
+Department is a string - correct value can be get on BPP authors list next to employee name.
+
+## License
+You can use this script free of charge.
+Please mention this repository if you publish the results or base your work on this project.

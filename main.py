@@ -38,15 +38,13 @@ def get_authors_id_by_faculty(faculty, filter_by_department=None):
         for author in authors:
             data = author.find_elements_by_tag_name("td")
             if len(data) == 3:
-                name_field = data[0].find_element_by_tag_name("a")
-                department_field = data[1].text
-                if filter_by_department is not None and department_field != filter_by_department:
+                author_url = data[0].find_element_by_tag_name("a").get_attribute("href")
+                author_department = data[1].text
+                if filter_by_department is not None and author_department != filter_by_department:
                     continue
-                href = name_field.get_attribute("href")
-                if href not in authors_links:
-                    ids = re.search('([0-9]+)', href)
-                    id = ids.groups(1)[0]
-                    authors_links.append(id)
+
+                author_id = re.search('([0-9]+)', author_url).groups(1)[0]
+                authors_links.append((author_id, author_department))
 
     return list(set(authors_links))
 
@@ -63,14 +61,16 @@ def get_pages_navs_buttons():
     return [p for p in pages if 'pozycje' in p.get_attribute("title")]
 
 
-def run(authors_ids, from_year, to_year):
+def run(authors, from_year, to_year):
     file = open('result.txt', 'w', encoding='utf8')
     department_points = []
 
-    for authorId in authors_ids:
+    for author in authors:
+        author_id = author[0]           # id
+        department_name = author[1]     # department
         sum_points = 0
         pubs_list_filtered_url = 'https://bpp.agh.edu.pl/autor/?idA={0}&idform=1&afi=1&f1Search=1&fodR={1}&fdoR={2}&fagTP=0&fagPM=on'.format(
-            authorId, from_year, to_year)
+            author_id, from_year, to_year)
         browser.get(pubs_list_filtered_url)
         author_name = browser.find_element_by_css_selector('h2').text
 
@@ -106,21 +106,21 @@ def run(authors_ids, from_year, to_year):
         for paperId in papers_ids:
             browser.get(
                 'https://bpp.agh.edu.pl/htmle.php?file=publikacja-pktm-iflf.html&id_publ={0}&id_autor={1}'.format(
-                    paperId, authorId))
+                    paperId, author_id))
             points_string = browser.find_element_by_class_name('ocena-pktm').text.split(':')[1]
             points = float(points_string)
             sum_points += points
 
         log = '{0:60s}: {1}'.format(author_name, sum_points)
         print(log)
-        log = '{0}\t{1}'.format(author_name, sum_points)
+        log = '{0}\t{1}\t{2}'.format(author_name, department_name, sum_points)
         file.write(log + "\n")
         department_points.append(sum_points)
     browser.quit()
     file.close()
     median = statistics.median(department_points)
     mean = statistics.mean(department_points)
-    print('Median for specific criteria: {0}\nAverage points: {1}'.format(median, mean))
+    print('\n\nMedian for specific criteria: {0}\nAverage points: {1}'.format(median, mean))
 
 
 if __name__ == "__main__":
