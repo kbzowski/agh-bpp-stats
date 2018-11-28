@@ -5,6 +5,8 @@ import os
 from selenium import webdriver
 from string import ascii_uppercase
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.select import Select
+import colorama
 import statistics
 
 from faculties import Faculty
@@ -16,9 +18,15 @@ options.add_argument('disable-infobars')
 driver_path = '{0}\\bin\\chromedriver.exe'.format(os.path.dirname(os.path.abspath(__file__)))
 browser = webdriver.Chrome(executable_path=driver_path, options=options)
 
+colorama.init(autoreset=True)
 
-def get_authors_ids(faculty, by_department=None):
+
+def get_authors_id_by_faculty(faculty, filter_by_department=None):
     faculty_id = faculty.value
+    browser.get('https://www.bpp.agh.edu.pl/?wydz={0}'.format(faculty_id))
+    faculty_name = Select(browser.find_element_by_id('wydz')).first_selected_option.text
+    print(colorama.Style.BRIGHT + 'Fetching staff from: {0}\n'.format(faculty_name))
+
     authors_links = []
     letters = ascii_uppercase + "ĆŚŹŻŁ"
     for char in letters:
@@ -32,7 +40,7 @@ def get_authors_ids(faculty, by_department=None):
             if len(data) == 3:
                 name_field = data[0].find_element_by_tag_name("a")
                 department_field = data[1].text
-                if by_department is not None and department_field != by_department:
+                if filter_by_department is not None and department_field != filter_by_department:
                     continue
                 href = name_field.get_attribute("href")
                 if href not in authors_links:
@@ -119,12 +127,11 @@ if __name__ == "__main__":
     ################### PARAMS ####################
     FROM_YEAR = 2017
     TO_YEAR = 2018
-    FACULTY = Faculty.WIMiIP
+    FACULTY = Faculty.WEAIiIB
     DEPARTMENT = None
     # DEPARTMENT = 'WIMiIP-kism'
     ###############################################
 
-    print('Fetching faculty staff... ')
-    authors_ids = get_authors_ids(FACULTY, DEPARTMENT)
+    authors_ids = get_authors_id_by_faculty(FACULTY, DEPARTMENT)
     # authors_ids = ['05854']       // For specific author
     run(authors_ids, FROM_YEAR, TO_YEAR)
