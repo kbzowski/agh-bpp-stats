@@ -8,6 +8,9 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.select import Select
 import colorama
 import statistics
+import requests
+import csv
+from collections import OrderedDict
 
 from faculties import Faculty
 
@@ -20,6 +23,10 @@ browser = webdriver.Chrome(executable_path=driver_path, options=options)
 
 colorama.init(autoreset=True)
 
+
+def get_publication_evaluation(author_id, pub_id):
+    resp = requests.get('https://sloty-proxy.bpp.agh.edu.pl/autor/{0}/publikacja/{1}'.format(author_id, pub_id))
+    return resp.json()
 
 def get_authors_id_by_faculty(faculty, filter_by_department=None):
     faculty_id = faculty.value
@@ -60,14 +67,54 @@ def get_pages_navs_buttons():
     pages = browser.find_elements_by_tag_name("input")
     return [p for p in pages if 'pozycje' in p.get_attribute("title")]
 
+def add_to_evaluation(evaluation_data, new_item):
+    discipline = new_item['nazwa_dyscypliny']
+    if discipline in evaluation_data:
+        if new_item['sloty_p_u_'] is None or new_item['sloty_u_'] is None:
+            print("Wrong eval data [None] - Autor: {}, Publikacja: {}".format(new_item['id_autor'], new_item['id_publ']))
+            return
+        evaluation_data[discipline]['points'] += new_item['sloty_p_u_']
+        evaluation_data[discipline]['slot'] += new_item['sloty_u_']
+    else:
+        evaluation_data[discipline] = {}
+        evaluation_data[discipline]['points'] = new_item['sloty_p_u_']
+        evaluation_data[discipline]['slot'] = new_item['sloty_u_']
+
+
+def save_global_evaluation_to_csv(global_evaluation):
+    headers = OrderedDict()
+    for person in global_evaluation:
+        for discipline in person['summary'].keys():
+            headers['{}_p'.format(discipline)] = 0
+            headers['{}_s'.format(discipline)] = 0
+
+
+
+    with open('evaluation.csv', mode='w', newline='') as csv_file:
+        filelds = ['name'] + list(headers)
+        writer = csv.DictWriter(csv_file, fieldnames=filelds)
+        writer.writeheader()
+
+        for person in global_evaluation:
+            data_to_write = {
+                "name": person["name"]
+            }
+            for discipline in person['summary'].keys():
+                data_to_write['{}_p'.format(discipline)] = person['summary'][discipline]['points']
+                data_to_write['{}_s'.format(discipline)] = person['summary'][discipline]['slot']
+            writer.writerow(data_to_write)
+
+
 
 def run(authors, from_year, to_year):
     file = open('result.txt', 'w', encoding='utf8')
     department_points = []
+    global_evaluation = []
 
     for author in authors:
-        author_id = author[0]           # id
-        department_name = author[1]     # department
+        author_id = author[0]  # id
+        department_name = author[1]  # department
+        author_evaluation = {}
         sum_points = 0
         pubs_list_filtered_url = 'https://bpp.agh.edu.pl/autor/?idA={0}&idform=1&afi=1&f1Search=1&fodR={1}&fdoR={2}&fagTP=0&fagPM=on'.format(
             author_id, from_year, to_year)
@@ -107,15 +154,30 @@ def run(authors, from_year, to_year):
             browser.get(
                 'https://bpp.agh.edu.pl/htmle.php?file=publikacja-pktm-iflf.html&id_publ={0}&id_autor={1}'.format(
                     paperId, author_id))
-            points_string = browser.find_element_by_class_name('ocena-pktm').text.split(':')[1]
-            points = float(points_string)
+            points_string = browser.find_element_by_class_name('ocena-pktm').text
+            points_string_list = points_string.split('\n')
+            last_evaluation_points = points_string_list[0]
+            extracted_points = re.search('.*?: (([0-9]*[.])?[0-9]+)', last_evaluation_points).groups(1)[0]
+            points = float(extracted_points)
             sum_points += points
+
+            #evaluation
+            paper_eval = get_publication_evaluation(author_id, paperId)
+            if len(paper_eval) > 0:
+                add_to_evaluation(author_evaluation, paper_eval[0])         # 0 if for evaluation 2021... probably
+
+        global_evaluation.append({
+            "name": author_name,
+            "summary": author_evaluation
+        })
 
         log = '{0:60s}: {1}'.format(author_name, sum_points)
         print(log)
         log = '{0}\t{1}\t{2}'.format(author_name, department_name, sum_points)
         file.write(log + "\n")
         department_points.append(sum_points)
+
+    save_global_evaluation_to_csv(global_evaluation)
     browser.quit()
     file.close()
     median = statistics.median(department_points)
@@ -125,13 +187,13 @@ def run(authors, from_year, to_year):
 
 if __name__ == "__main__":
     ################### PARAMS ####################
-    FROM_YEAR = 2017
-    TO_YEAR = 2018
-    FACULTY = Faculty.WEAIiIB
-    DEPARTMENT = None
+    FROM_YEAR = 2020
+    TO_YEAR = 2020
+    FACULTY = Faculty.WIMiIP
+    DEPARTMENT = 'WIMiIP-kism'
     # DEPARTMENT = 'WIMiIP-kism'
     ###############################################
 
     authors_ids = get_authors_id_by_faculty(FACULTY, DEPARTMENT)
-    # authors_ids = ['05854']       // For specific author
+    #authors_ids = [('05138', 'WIMiIP-kism')]       # For specific author
     run(authors_ids, FROM_YEAR, TO_YEAR)
