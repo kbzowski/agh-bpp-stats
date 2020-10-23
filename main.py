@@ -28,11 +28,26 @@ def get_publication_evaluation(author_id, pub_id):
     resp = requests.get('https://sloty-proxy.bpp.agh.edu.pl/autor/{0}/publikacja/{1}'.format(author_id, pub_id))
     return resp.json()
 
+
+def is_author_alive(author):
+    author_id = author[0]
+    browser.get("https://bpp.agh.edu.pl/autor/{}".format(author_id))
+    author_name = browser.find_element_by_css_selector('h2').text.split(',')[0]
+    try:
+        browser.find_element_by_partial_link_text('System Informacyjny AGH')
+    except:
+        print('{0:10} {1:60s}'.format(author_id, author_name))
+        return False
+
+    print('{0:10} {1:60s} PRACOWNIK'.format(author_id, author_name))
+    return True
+
 def get_authors_id_by_faculty(faculty, filter_by_department=None):
     faculty_id = faculty.value
     browser.get('https://www.bpp.agh.edu.pl/?wydz={0}'.format(faculty_id))
     faculty_name = Select(browser.find_element_by_id('wydz')).first_selected_option.text
     print(colorama.Style.BRIGHT + 'Fetching staff from: {0}\n'.format(faculty_name))
+
 
     authors_links = []
     letters = ascii_uppercase + "ĆŚŹŻŁ"
@@ -69,10 +84,11 @@ def get_pages_navs_buttons():
 
 def add_to_evaluation(evaluation_data, new_item):
     discipline = new_item['nazwa_dyscypliny']
+    if new_item['sloty_p_u_'] is None or new_item['sloty_u_'] is None:
+        print(colorama.Fore.RED, "Wrong eval data [None] - Autor: {}, Publikacja: {}".format(new_item['id_autor'], new_item['id_publ']))
+        return
+
     if discipline in evaluation_data:
-        if new_item['sloty_p_u_'] is None or new_item['sloty_u_'] is None:
-            print("Wrong eval data [None] - Autor: {}, Publikacja: {}".format(new_item['id_autor'], new_item['id_publ']))
-            return
         evaluation_data[discipline]['points'] += new_item['sloty_p_u_']
         evaluation_data[discipline]['slot'] += new_item['sloty_u_']
     else:
@@ -113,13 +129,16 @@ def run(authors, from_year, to_year):
 
     for author in authors:
         author_id = author[0]  # id
+        if isinstance(author_id, int):
+            author_id = str(author_id)
+
         department_name = author[1]  # department
         author_evaluation = {}
         sum_points = 0
         pubs_list_filtered_url = 'https://bpp.agh.edu.pl/autor/?idA={0}&idform=1&afi=1&f1Search=1&fodR={1}&fdoR={2}&fagTP=0&fagPM=on'.format(
             author_id, from_year, to_year)
         browser.get(pubs_list_filtered_url)
-        author_name = browser.find_element_by_css_selector('h2').text
+        author_name = browser.find_element_by_css_selector('h2').text.split(',')[0]
 
         # get all pages
         pages = get_pages_navs_buttons()
@@ -171,9 +190,9 @@ def run(authors, from_year, to_year):
             "summary": author_evaluation
         })
 
-        log = '{0:60s}: {1}'.format(author_name, sum_points)
+        log = '{0:10s} {1:60s}: {2}'.format(author_id, author_name, sum_points)
         print(log)
-        log = '{0}\t{1}\t{2}'.format(author_name, department_name, sum_points)
+        log = '{0:10s} {1}\t{2}\t{3}'.format(author_id, author_name, department_name, sum_points)
         file.write(log + "\n")
         department_points.append(sum_points)
 
@@ -187,13 +206,15 @@ def run(authors, from_year, to_year):
 
 if __name__ == "__main__":
     ################### PARAMS ####################
-    FROM_YEAR = 2020
+    FROM_YEAR = 2016
     TO_YEAR = 2020
     FACULTY = Faculty.WIMiIP
     DEPARTMENT = 'WIMiIP-kism'
-    # DEPARTMENT = 'WIMiIP-kism'
     ###############################################
 
+
     authors_ids = get_authors_id_by_faculty(FACULTY, DEPARTMENT)
-    #authors_ids = [('05138', 'WIMiIP-kism')]       # For specific author
+    authors_ids = [a for a in authors_ids if is_author_alive(a)]
+    #pracownicy_aktualni = [(4838, ''), (2776, ''), (2773, ''), (6330, ''), (2775, ''), (2770, ''), (5138, ''), (21023, ''), (7173, ''), (26298, ''), (3942, ''), (6353, ''), (5929, ''), (4650, ''), (4667, ''), (3655, ''), (3556, ''), (4651, ''), (7225, ''), (5861, ''), (5063, ''), (6991, ''), (5973, ''), (7213, ''), (17069, ''), (31825, ''), (5828, ''), (18663, ''), (4844, ''), (33863, ''), (35207, ''), (5010, ''), (17548, ''), (5854, ''), (6357, ''), (5008, ''), (4174, ''), (5601, ''), (4843, ''), (7100, ''), (6468, ''), (2767, ''), (6152, ''), (12206, ''), (6855, ''), (20770, ''), (4360, ''), (5783, ''), (9040, '')]
+    #authors_ids = [('05063', 'WIMiIP-kism')]       # For specific author
     run(authors_ids, FROM_YEAR, TO_YEAR)
