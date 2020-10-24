@@ -75,17 +75,23 @@ def extract_papers_ids(papers_ids):
     papers = browser.find_elements_by_xpath("//*[@class='tp1' or @class='tp2' or @class='tp3']")
     for paper in papers:
         paper_id = paper.get_attribute("id").split(':')[1]
-        papers_ids.append(paper_id)
+        paper_name = paper.text
+        papers_ids.append({'id': paper_id, 'name': paper_name})
 
 
 def get_pages_navs_buttons():
     pages = browser.find_elements_by_tag_name("input")
     return [p for p in pages if 'pozycje' in p.get_attribute("title")]
 
-def add_to_evaluation(evaluation_data, new_item):
+def add_to_evaluation(evaluation_data, new_item, author_name, paperName, errors):
     discipline = new_item['nazwa_dyscypliny']
     if new_item['sloty_p_u_'] is None or new_item['sloty_u_'] is None:
-        print(colorama.Fore.RED, "Wrong eval data [None] - Autor: {}, Publikacja: {}".format(new_item['id_autor'], new_item['id_publ']))
+        errors.append({
+            'authorName': author_name,
+            'paperName': paperName,
+            'paperId': new_item['id_publ'],
+            'summPoints': new_item['wzor_p_c']
+        })
         return
 
     if discipline in evaluation_data:
@@ -106,7 +112,7 @@ def save_global_evaluation_to_csv(global_evaluation):
 
 
 
-    with open('evaluation.csv', mode='w', newline='') as csv_file:
+    with open('evaluation.csv', mode='w', newline='', encoding='utf-8') as csv_file:
         filelds = ['name'] + list(headers)
         writer = csv.DictWriter(csv_file, fieldnames=filelds)
         writer.writeheader()
@@ -121,11 +127,21 @@ def save_global_evaluation_to_csv(global_evaluation):
             writer.writerow(data_to_write)
 
 
+def save_errors_to_csv(errors):
+    with open('errors.csv', mode='w', newline='', encoding='utf-8') as csv_file:
+        fields = ['authorName', 'paperName', 'paperId', 'summPoints']
+        writer = csv.DictWriter(csv_file, fieldnames=fields)
+        writer.writeheader()
+
+        for error in errors:
+            writer.writerow(error)
+
 
 def run(authors, from_year, to_year):
     file = open('result.txt', 'w', encoding='utf8')
     department_points = []
     global_evaluation = []
+    errors = []
 
     for author in authors:
         author_id = author[0]  # id
@@ -169,7 +185,10 @@ def run(authors, from_year, to_year):
                         except:
                             pass
 
-        for paperId in papers_ids:
+
+        for paper in papers_ids:
+            paperId = paper['id']
+            paperName = paper['name']
             browser.get(
                 'https://bpp.agh.edu.pl/htmle.php?file=publikacja-pktm-iflf.html&id_publ={0}&id_autor={1}'.format(
                     paperId, author_id))
@@ -183,7 +202,7 @@ def run(authors, from_year, to_year):
             #evaluation
             paper_eval = get_publication_evaluation(author_id, paperId)
             if len(paper_eval) > 0:
-                add_to_evaluation(author_evaluation, paper_eval[0])         # 0 if for evaluation 2021... probably
+                add_to_evaluation(author_evaluation, paper_eval[0], author_name, paperName, errors)         # 0 if for evaluation 2021... probably
 
         global_evaluation.append({
             "name": author_name,
@@ -197,6 +216,7 @@ def run(authors, from_year, to_year):
         department_points.append(sum_points)
 
     save_global_evaluation_to_csv(global_evaluation)
+    save_errors_to_csv(errors)
     browser.quit()
     file.close()
     median = statistics.median(department_points)
@@ -213,8 +233,8 @@ if __name__ == "__main__":
     ###############################################
 
 
-    authors_ids = get_authors_id_by_faculty(FACULTY, DEPARTMENT)
+    authors_ids = get_authors_id_by_faculty(FACULTY, None)
     authors_ids = [a for a in authors_ids if is_author_alive(a)]
-    #pracownicy_aktualni = [(4838, ''), (2776, ''), (2773, ''), (6330, ''), (2775, ''), (2770, ''), (5138, ''), (21023, ''), (7173, ''), (26298, ''), (3942, ''), (6353, ''), (5929, ''), (4650, ''), (4667, ''), (3655, ''), (3556, ''), (4651, ''), (7225, ''), (5861, ''), (5063, ''), (6991, ''), (5973, ''), (7213, ''), (17069, ''), (31825, ''), (5828, ''), (18663, ''), (4844, ''), (33863, ''), (35207, ''), (5010, ''), (17548, ''), (5854, ''), (6357, ''), (5008, ''), (4174, ''), (5601, ''), (4843, ''), (7100, ''), (6468, ''), (2767, ''), (6152, ''), (12206, ''), (6855, ''), (20770, ''), (4360, ''), (5783, ''), (9040, '')]
+    #authors_ids = [(4838, ''), (2776, ''), (2773, ''), (6330, ''), (2775, ''), (2770, ''), (5138, ''), (21023, ''), (7173, ''), (26298, ''), (3942, ''), (6353, ''), (5929, ''), (4650, ''), (4667, ''), (3655, ''), (3556, ''), (4651, ''), (7225, ''), (5861, ''), (5063, ''), (6991, ''), (5973, ''), (7213, ''), (17069, ''), (31825, ''), (5828, ''), (18663, ''), (4844, ''), (33863, ''), (35207, ''), (5010, ''), (17548, ''), (5854, ''), (6357, ''), (5008, ''), (4174, ''), (5601, ''), (4843, ''), (7100, ''), (6468, ''), (2767, ''), (6152, ''), (12206, ''), (6855, ''), (20770, ''), (4360, ''), (5783, ''), (9040, '')]
     #authors_ids = [('05063', 'WIMiIP-kism')]       # For specific author
     run(authors_ids, FROM_YEAR, TO_YEAR)
