@@ -20,8 +20,8 @@ options.add_argument('start-maximized')
 options.add_argument('disable-infobars')
 driver_path_chrome = '{0}\\bin\\chromedriver.exe'.format(os.path.dirname(os.path.abspath(__file__)))
 driver_path_phantom = '{0}\\bin\\phantomjs.exe'.format(os.path.dirname(os.path.abspath(__file__)))
-# browser = webdriver.Chrome(executable_path=driver_path_chrome, options=options)
-browser = webdriver.PhantomJS(executable_path=driver_path_phantom)
+browser = webdriver.Chrome(executable_path=driver_path_chrome, options=options)
+# browser = webdriver.PhantomJS(executable_path=driver_path_phantom)
 
 colorama.init(autoreset=True)
 
@@ -117,13 +117,15 @@ def save_global_evaluation_to_csv(global_evaluation):
 
 
     with open('evaluation.csv', mode='w', newline='', encoding='utf-8') as csv_file:
-        filelds = ['name'] + list(headers)
+        filelds = ['imie', 'nazwisko', 'department'] + list(headers)
         writer = csv.DictWriter(csv_file, fieldnames=filelds)
         writer.writeheader()
 
         for person in global_evaluation:
             data_to_write = {
-                "name": person["name"]
+                "imie": person["name"].split(" ")[0],
+                "nazwisko": person["name"].split(" ")[1],
+                "department": person["department"]
             }
             for discipline in person['summary'].keys():
                 data_to_write['{}_p'.format(discipline)] = person['summary'][discipline]['points']
@@ -210,6 +212,7 @@ def run(authors, from_year, to_year):
 
         global_evaluation.append({
             "name": author_name,
+            "department": department_name,
             "summary": author_evaluation
         })
 
@@ -233,12 +236,13 @@ if __name__ == "__main__":
     FROM_YEAR = 2016
     TO_YEAR = 2020
     FACULTY = Faculty.WIMiIP
-    DEPARTMENT = 'WIMiIP-kism'
+    DEPARTMENT = None
+    # DEPARTMENT = 'WIMiIP-kism'
     ###############################################
 
 
-    authors_ids = get_authors_id_by_faculty(FACULTY, None)
+    authors_ids = get_authors_id_by_faculty(FACULTY, DEPARTMENT)
     authors_ids = [a for a in authors_ids if is_author_alive(a)]
     #authors_ids = [(4838, ''), (2776, ''), (2773, ''), (6330, ''), (2775, ''), (2770, ''), (5138, ''), (21023, ''), (7173, ''), (26298, ''), (3942, ''), (6353, ''), (5929, ''), (4650, ''), (4667, ''), (3655, ''), (3556, ''), (4651, ''), (7225, ''), (5861, ''), (5063, ''), (6991, ''), (5973, ''), (7213, ''), (17069, ''), (31825, ''), (5828, ''), (18663, ''), (4844, ''), (33863, ''), (35207, ''), (5010, ''), (17548, ''), (5854, ''), (6357, ''), (5008, ''), (4174, ''), (5601, ''), (4843, ''), (7100, ''), (6468, ''), (2767, ''), (6152, ''), (12206, ''), (6855, ''), (20770, ''), (4360, ''), (5783, ''), (9040, '')]
-    #authors_ids = [('05344', 'WIMiIP-kism')]       # For specific author
+    # authors_ids = [('05344', 'WIMiIP-kism')]       # For specific author
     run(authors_ids, FROM_YEAR, TO_YEAR)
