@@ -13,13 +13,15 @@ import csv
 from collections import OrderedDict
 
 from faculties import Faculty
-
+# user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
 options = Options()
-options.headless = True
+options.headless = False
 options.add_argument('start-maximized')
 options.add_argument('disable-infobars')
-driver_path = '{0}\\bin\\chromedriver.exe'.format(os.path.dirname(os.path.abspath(__file__)))
-browser = webdriver.Chrome(executable_path=driver_path, options=options)
+driver_path_chrome = '{0}\\bin\\chromedriver.exe'.format(os.path.dirname(os.path.abspath(__file__)))
+driver_path_phantom = '{0}\\bin\\phantomjs.exe'.format(os.path.dirname(os.path.abspath(__file__)))
+# browser = webdriver.Chrome(executable_path=driver_path_chrome, options=options)
+browser = webdriver.PhantomJS(executable_path=driver_path_phantom)
 
 colorama.init(autoreset=True)
 
@@ -101,6 +103,8 @@ def add_to_evaluation(evaluation_data, new_item, author_name, paperName, errors)
         evaluation_data[discipline] = {}
         evaluation_data[discipline]['points'] = new_item['sloty_p_u_']
         evaluation_data[discipline]['slot'] = new_item['sloty_u_']
+
+    # print("{}#{}#{}".format(paperName, new_item['sloty_p_u_'], new_item['sloty_u_']))
 
 
 def save_global_evaluation_to_csv(global_evaluation):
@@ -233,8 +237,8 @@ if __name__ == "__main__":
     ###############################################
 
 
-    authors_ids = get_authors_id_by_faculty(FACULTY, None)
-    authors_ids = [a for a in authors_ids if is_author_alive(a)]
+    #authors_ids = get_authors_id_by_faculty(FACULTY, None)
+    #authors_ids = [a for a in authors_ids if is_author_alive(a)]
     #authors_ids = [(4838, ''), (2776, ''), (2773, ''), (6330, ''), (2775, ''), (2770, ''), (5138, ''), (21023, ''), (7173, ''), (26298, ''), (3942, ''), (6353, ''), (5929, ''), (4650, ''), (4667, ''), (3655, ''), (3556, ''), (4651, ''), (7225, ''), (5861, ''), (5063, ''), (6991, ''), (5973, ''), (7213, ''), (17069, ''), (31825, ''), (5828, ''), (18663, ''), (4844, ''), (33863, ''), (35207, ''), (5010, ''), (17548, ''), (5854, ''), (6357, ''), (5008, ''), (4174, ''), (5601, ''), (4843, ''), (7100, ''), (6468, ''), (2767, ''), (6152, ''), (12206, ''), (6855, ''), (20770, ''), (4360, ''), (5783, ''), (9040, '')]
-    #authors_ids = [('05063', 'WIMiIP-kism')]       # For specific author
+    authors_ids = [('05344', 'WIMiIP-kism')]       # For specific author
     run(authors_ids, FROM_YEAR, TO_YEAR)
