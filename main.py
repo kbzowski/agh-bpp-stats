@@ -237,8 +237,8 @@ if __name__ == "__main__":
     ###############################################
 
 
-    #authors_ids = get_authors_id_by_faculty(FACULTY, None)
-    #authors_ids = [a for a in authors_ids if is_author_alive(a)]
+    authors_ids = get_authors_id_by_faculty(FACULTY, None)
+    authors_ids = [a for a in authors_ids if is_author_alive(a)]
     #authors_ids = [(4838, ''), (2776, ''), (2773, ''), (6330, ''), (2775, ''), (2770, ''), (5138, ''), (21023, ''), (7173, ''), (26298, ''), (3942, ''), (6353, ''), (5929, ''), (4650, ''), (4667, ''), (3655, ''), (3556, ''), (4651, ''), (7225, ''), (5861, ''), (5063, ''), (6991, ''), (5973, ''), (7213, ''), (17069, ''), (31825, ''), (5828, ''), (18663, ''), (4844, ''), (33863, ''), (35207, ''), (5010, ''), (17548, ''), (5854, ''), (6357, ''), (5008, ''), (4174, ''), (5601, ''), (4843, ''), (7100, ''), (6468, ''), (2767, ''), (6152, ''), (12206, ''), (6855, ''), (20770, ''), (4360, ''), (5783, ''), (9040, '')]
-    authors_ids = [('05344', 'WIMiIP-kism')]       # For specific author
+    #authors_ids = [('05344', 'WIMiIP-kism')]       # For specific author
     run(authors_ids, FROM_YEAR, TO_YEAR)
