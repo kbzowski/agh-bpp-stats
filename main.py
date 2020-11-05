@@ -246,6 +246,19 @@ def get_authors_by_discipline(discipline, min_percent = 0):
     #             writer.writerow(info)
 
 
+def get_authors_by_discipline_from_cache(discipline, min_percent = 0):
+    filtered_list = []
+
+    with open('authors.json', mode='r', encoding='utf-8') as authors_file:
+        authors = json.load(authors_file)
+        for author in authors:
+            if author['alive']:
+                if author['disc1'] == discipline.value and author['disc1_percent'] > min_percent:
+                    filtered_list.append(author['id'])
+                if author['disc2'] == discipline.value and author['disc2_percent'] > min_percent:
+                    filtered_list.append(author['id'])
+
+    return filtered_list
 
 def run(authors, from_year, to_year):
     file = open('result.txt', 'w', encoding='utf8')
@@ -334,7 +347,7 @@ def run(authors, from_year, to_year):
 
 if __name__ == "__main__":
     ################### PARAMS ####################
-    FROM_YEAR = 2016
+    FROM_YEAR = 2019
     TO_YEAR = 2020
     FACULTY = Faculty.WIMiIP
     DEPARTMENT = None
@@ -347,7 +360,8 @@ if __name__ == "__main__":
     # authors_ids = [('05344', 'WIMiIP-kism')]       # For specific author
     # run(authors_ids, FROM_YEAR, TO_YEAR)
 
-    authors_ids = get_authors_by_discipline(Discipline.INZYNIERIA_MATERIALOWA)
+    #authors_ids = get_authors_by_discipline(Discipline.INZYNIERIA_MATERIALOWA)
+    authors_ids = get_authors_by_discipline_from_cache(Discipline.INFORMATYKA_TECHNICZNA_I_TELEKOMUNIKACJA)
     # print(authors_ids)
     # authors_ids = ['05063']
     run(authors_ids, FROM_YEAR, TO_YEAR)
