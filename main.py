@@ -37,6 +37,7 @@ def get_publication_evaluation(author_id, pub_id):
         data = data[0]       # dla ewaluacji 2021
         return {
             "disc": data.get('nazwa_dyscypliny'),
+            'rok_wydania': data.get('rok_wydania'),
             "slot": data.get('sloty_u_'),
             "points": data.get('sloty_p_u_'),
             "summ_points": data.get('wzor_p_c'),
@@ -106,7 +107,7 @@ def evaluate_author(author, errors):
                     'paperId': paper['id'],
                     'summPoints': eval.get('summ_points')
                 })
-                return
+                continue
 
             if discipline in evaluation_data:
                 evaluation_data[discipline]['points'] += eval['points']
@@ -326,32 +327,19 @@ def get_papers_for(authors, from_year, to_year):
 
 if __name__ == "__main__":
     # Make initial cache
-    all_authors = make_cache()
-    save_data(all_authors, "agh_authors.json")
-
-
-
-    # all_authors = load_data("authors.json")
-    #
-    # all_authors = filter_authors_by_alive(all_authors)
-    # all_authors = filter_authors_by_faculty_name(all_authors, FacultyName.WIMiIP)
-    # # all_authors = filter_authors_by_discipline(all_authors, Discipline.INFORMATYKA_TECHNICZNA_I_TELEKOMUNIKACJA)
-    #
-    # authors_with_papers = get_papers_for(all_authors, 2020, 2020)
-    # evaluated_authors, evaluations_errors = evaluate_authors(authors_with_papers)
-    #
-    # save_data(evaluated_authors, "papers.json")
-    # save_data(evaluations_errors, "errors.json")
-    #
-    # save_global_evaluation_to_csv(evaluated_authors, 'evaluation.csv')
+    # all_authors = make_cache()
+    # save_data(all_authors, "agh_authors.json")
 
     # get evaluation for WIMIIP
-    # authors_wimiip = load_data("authors_wimiip.json")
-    # remove_authors_papers(authors_wimiip)
-    # authors_with_papers = get_papers_for(authors_wimiip, 2020, 2020)
-    # evaluated_authors, evaluations_errors = evaluate_authors(authors_with_papers)
-    # save_data(evaluations_errors, "authors_wimiip_errors_2020.json")
-    # save_global_evaluation_to_csv(evaluated_authors, 'evaluation_wimiip_2020.csv')
+    all_authors = load_data("agh_authors.json")
+    all_authors = filter_authors_by_alive(all_authors)
+    all_authors = filter_authors_by_faculty_name(all_authors, FacultyName.WIMiIP)
+
+    authors_with_papers = get_papers_for(all_authors, 2018, 2018)
+    evaluated_authors, evaluations_errors = evaluate_authors(authors_with_papers)
+    save_data(evaluations_errors, "authors_wimiip_errors_2018.json")
+    save_data(authors_with_papers, "authors_wimiip_2018.json")
+    save_global_evaluation_to_csv(evaluated_authors, 'evaluation_wimiip_2018.csv')
 
 
     browser.quit()
