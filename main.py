@@ -11,6 +11,7 @@ import statistics
 import requests
 import csv
 from collections import OrderedDict
+import pandas as pd
 
 from disciplines import Discipline
 from faculties import Faculty
@@ -277,6 +278,45 @@ def remove_authors_papers(authors):
         authors[i].pop('evaluation', None)
 
 
+def get_paper_authors_from_faculty(authors_with_papers, paper_id, faculty_name):
+    authors_ids = []
+    for author in authors_with_papers:
+        if author['faculty'] == faculty_name:
+            for paper in author['papers']:
+                if paper['id'] == paper_id:
+                    authors_ids.append(author['id'])
+
+    return authors_ids
+
+def create_associative_matrix(authors_with_papers, file_name):
+    papers_set = {}
+    authors_ids = []
+    authors_names = []
+    papers_names = {}
+
+    for author in authors_with_papers:
+        authors_ids.append(author['id'])
+        authors_names.append(author['nazwisko'] + ' ' + author['imie'])
+
+    for author in authors_with_papers:
+        for paper in author['papers']:
+            cooauthors = get_paper_authors_from_faculty(authors_with_papers, paper['id'], FacultyName.WIMiIP.value)
+            papers_set[paper['id']] = [0] * len(authors_ids)
+            for ca in cooauthors:
+                author_index = authors_ids.index(ca)
+                pid = paper['id']
+                if paper['eval'] is not None and paper['eval']['summ_points'] > 0:
+                    papers_set[pid][author_index] = paper['eval']['summ_points'] / len(cooauthors)
+                else:
+                    papers_set[pid][author_index] = 0
+                papers_names[pid] = paper['title']
+
+    df = pd.DataFrame(papers_set)
+    df.index = authors_names
+    df = df.rename(columns=papers_names)
+    df.transpose().to_csv(file_name)
+
+
 def get_papers_for(authors, from_year, to_year):
     for ai, author in enumerate(authors):
         author_id = author['id']  # id
@@ -331,15 +371,20 @@ if __name__ == "__main__":
     # save_data(all_authors, "agh_authors.json")
 
     # get evaluation for WIMIIP
-    all_authors = load_data("agh_authors.json")
-    all_authors = filter_authors_by_alive(all_authors)
-    all_authors = filter_authors_by_faculty_name(all_authors, FacultyName.WIMiIP)
+    # all_authors = load_data("agh_authors.json")
+    # all_authors = filter_authors_by_alive(all_authors)
+    # all_authors = filter_authors_by_faculty_name(all_authors, FacultyName.WIMiIP)
+    #
+    # authors_with_papers = get_papers_for(all_authors, 2016, 2020)
+    # evaluated_authors, evaluations_errors = evaluate_authors(authors_with_papers)
+    # save_data(evaluations_errors, "authors_wimiip_errors_2016-2020.json")
+    # save_data(authors_with_papers, "authors_wimiip_2016-2020.json")
+    # save_global_evaluation_to_csv(evaluated_authors, 'evaluation_wimiip_2016-2020.csv')
 
-    authors_with_papers = get_papers_for(all_authors, 2018, 2018)
-    evaluated_authors, evaluations_errors = evaluate_authors(authors_with_papers)
-    save_data(evaluations_errors, "authors_wimiip_errors_2018.json")
-    save_data(authors_with_papers, "authors_wimiip_2018.json")
-    save_global_evaluation_to_csv(evaluated_authors, 'evaluation_wimiip_2018.csv')
+    # create associative matrix
+    authors_with_papers = load_data("authors_wimiip_2019.json")
+    create_associative_matrix(authors_with_papers, "matrix_2019.csv")
+
 
 
     browser.quit()
