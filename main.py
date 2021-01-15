@@ -292,11 +292,13 @@ def create_associative_matrix(authors_with_papers, file_name):
     papers_set = {}
     authors_ids = []
     authors_names = []
+    authors_deps = []
     papers_names = {}
 
     for author in authors_with_papers:
         authors_ids.append(author['id'])
         authors_names.append(author['nazwisko'] + ' ' + author['imie'])
+        authors_deps.append(author['department'].split(',')[0])
 
     for author in authors_with_papers:
         for paper in author['papers']:
@@ -314,6 +316,7 @@ def create_associative_matrix(authors_with_papers, file_name):
     df = pd.DataFrame(papers_set)
     df.index = authors_names
     df = df.rename(columns=papers_names)
+    df.insert(loc=0, column='department', value=authors_deps)
     df.transpose().to_csv(file_name)
 
 
@@ -371,20 +374,20 @@ if __name__ == "__main__":
     # save_data(all_authors, "agh_authors.json")
 
     # get evaluation for WIMIIP
-    all_authors = load_data("agh_authors.json")
-    all_authors = filter_authors_by_alive(all_authors)
-    all_authors = filter_authors_by_discipline(all_authors, Discipline.INFORMATYKA_TECHNICZNA_I_TELEKOMUNIKACJA)
+    # all_authors = load_data("agh_authors.json")
+    # all_authors = filter_authors_by_alive(all_authors)
+    # # all_authors = filter_authors_by_discipline(all_authors, Discipline.INFORMATYKA_TECHNICZNA_I_TELEKOMUNIKACJA)
     # all_authors = filter_authors_by_faculty_name(all_authors, FacultyName.WIMiIP)
-    #
-    authors_with_papers = get_papers_for(all_authors, 2017, 2020)
-    evaluated_authors, evaluations_errors = evaluate_authors(authors_with_papers)
-    save_data(evaluations_errors, "ITIT_errors_2017-2020.json")
-    # save_data(authors_with_papers, "INZ_MECH_2017-2020.json")
-    save_global_evaluation_to_csv(evaluated_authors, 'ITIT_2017-2020.csv')
+    # #
+    # authors_with_papers = get_papers_for(all_authors, 2020, 2020)
+    # evaluated_authors, evaluations_errors = evaluate_authors(authors_with_papers)
+    # save_data(evaluations_errors, "WIMIIP_2017-2020.json")
+    # save_data(authors_with_papers, "authors_wimiip_2020.json")
+    # save_global_evaluation_to_csv(evaluated_authors, 'WIMIIP_2017-2020.csv')
 
     # create associative matrix
-    # authors_with_papers = load_data("authors_wimiip_2019.json")
-    # create_associative_matrix(authors_with_papers, "matrix_2019.csv")
+    authors_with_papers = load_data("authors_wimiip_2020.json")
+    create_associative_matrix(authors_with_papers, "WIMIIP_papers_2020.csv")
 
 
 
