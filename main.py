@@ -303,14 +303,15 @@ def create_associative_matrix(authors_with_papers, file_name):
     for author in authors_with_papers:
         for paper in author['papers']:
             cooauthors = get_paper_authors_from_faculty(authors_with_papers, paper['id'], FacultyName.WIMiIP.value)
-            papers_set[paper['id']] = [0] * len(authors_ids)
+            pid = paper['id']
+            if pid not in papers_set:
+                papers_set[pid] = [0] * len(authors_ids)
+
             for ca in cooauthors:
                 author_index = authors_ids.index(ca)
-                pid = paper['id']
                 if paper['eval'] is not None and paper['eval']['summ_points'] > 0:
                     papers_set[pid][author_index] = paper['eval']['summ_points'] / len(cooauthors)
-                else:
-                    papers_set[pid][author_index] = 0
+
                 papers_names[pid] = paper['title']
 
     df = pd.DataFrame(papers_set)
