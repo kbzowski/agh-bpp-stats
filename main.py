@@ -314,6 +314,15 @@ def create_associative_matrix(authors_with_papers, file_name):
 
                 papers_names[pid] = paper['title']
 
+    # Edge case na eval == None
+    for author in authors_with_papers:
+        for paper in author['papers']:
+            if paper['eval'] is None:
+                pid = paper['id']
+                ai = authors_ids.index(author['id'])
+                papers_set[pid][ai] = 0
+
+
     df = pd.DataFrame(papers_set)
     df.index = authors_names
     df = df.rename(columns=papers_names)
