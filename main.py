@@ -289,7 +289,7 @@ def get_paper_authors_from_faculty(authors_with_papers, paper_id, faculty_name):
     return authors_ids
 
 
-def create_associative_matrix(authors_with_papers, file_name):
+def create_associative_matrix(authors_with_papers, matrix_type, file_name):
     papers_set = {}
     authors_ids = []
     authors_names = []
@@ -311,7 +311,10 @@ def create_associative_matrix(authors_with_papers, file_name):
             for ca in cooauthors:
                 author_index = authors_ids.index(ca)
                 if paper['eval'] is not None and paper['eval']['summ_points'] > 0:
-                    papers_set[pid][author_index] = paper['eval']['summ_points'] / len(cooauthors)
+                    if matrix_type == 'alive':
+                        papers_set[pid][author_index] = paper['eval']['summ_points'] / len(cooauthors)
+                    elif matrix_type == 'm':
+                        papers_set[pid][author_index] = paper['eval']['summ_points'] / paper['eval']['wzor_m']
 
                 papers_names[pid] = paper['title']
 
@@ -382,7 +385,8 @@ if __name__ == "__main__":
     # save_data(all_authors, "agh_authors.json")
 
     # get evaluation for WIMIIP
-    # all_authors = load_data("agh_authors.json")
+    #all_authors = load_data("agh_authors.json")
+
     # all_authors = filter_authors_by_alive(all_authors)
     # # all_authors = filter_authors_by_discipline(all_authors, Discipline.INFORMATYKA_TECHNICZNA_I_TELEKOMUNIKACJA)
     # all_authors = filter_authors_by_faculty_name(all_authors, FacultyName.WIMiIP)
@@ -395,6 +399,8 @@ if __name__ == "__main__":
 
     # create associative matrix
     authors_with_papers = load_data("authors_wimiip_2020.json")
-    create_associative_matrix(authors_with_papers, "WIMIIP_papers_2020.csv")
+
+    matrix_type = 'alive' # or 'm'
+    create_associative_matrix(authors_with_papers, matrix_type, "WIMIIP_papers_2020.csv")
 
     browser.quit()
