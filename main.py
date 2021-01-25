@@ -35,7 +35,7 @@ def get_publication_evaluation(author_id, pub_id):
     resp = requests.get('https://sloty-proxy.bpp.agh.edu.pl/autor/{0}/publikacja/{1}'.format(author_id, pub_id))
     data = resp.json()
     if len(data) > 0:
-        data = data[0]       # dla ewaluacji 2021
+        data = data[0]  # dla ewaluacji 2021
         return {
             "disc": data.get('nazwa_dyscypliny'),
             'rok_wydania': data.get('rok_wydania'),
@@ -48,7 +48,6 @@ def get_publication_evaluation(author_id, pub_id):
         }
     else:
         return None
-
 
 
 def get_authors_ids():
@@ -77,7 +76,7 @@ def extract_papers_data_from_current_page():
     papers_data = []
     for paper in papers:
         paper_id = paper.get_attribute("id").split(':')[1]
-        paper_info = paper.text.split('/ ')         # <-- Musi byc tak bo jak w tytule jest wzorek to sie split chrzani
+        paper_info = paper.text.split('/ ')  # <-- Musi byc tak bo jak w tytule jest wzorek to sie split chrzani
         try:
             papers_data.append({
                 'id': paper_id,
@@ -128,6 +127,7 @@ def evaluate_authors(authors_with_papers):
         authors_with_papers[i]['evaluation'] = evaluation_data
 
     return authors_with_papers, errors
+
 
 def save_global_evaluation_to_csv(authors, filename):
     headers = OrderedDict()
@@ -283,10 +283,11 @@ def get_paper_authors_from_faculty(authors_with_papers, paper_id, faculty_name):
     for author in authors_with_papers:
         if author['faculty'] == faculty_name:
             for paper in author['papers']:
-                if paper['id'] == paper_id:
+                if paper['id'] == paper_id and author['alive']:
                     authors_ids.append(author['id'])
 
     return authors_ids
+
 
 def create_associative_matrix(authors_with_papers, file_name):
     papers_set = {}
@@ -321,7 +322,6 @@ def create_associative_matrix(authors_with_papers, file_name):
                 pid = paper['id']
                 ai = authors_ids.index(author['id'])
                 papers_set[pid][ai] = 0
-
 
     df = pd.DataFrame(papers_set)
     df.index = authors_names
@@ -376,8 +376,6 @@ def get_papers_for(authors, from_year, to_year):
     return authors
 
 
-
-
 if __name__ == "__main__":
     # Make initial cache
     # all_authors = make_cache()
@@ -398,7 +396,5 @@ if __name__ == "__main__":
     # create associative matrix
     authors_with_papers = load_data("authors_wimiip_2020.json")
     create_associative_matrix(authors_with_papers, "WIMIIP_papers_2020.csv")
-
-
 
     browser.quit()
