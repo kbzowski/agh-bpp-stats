@@ -250,18 +250,21 @@ def save_data(data, filename):
     file.close()
 
 
-def filter_authors_by_discipline(authors, discipline, min_percent=0):
+def filter_authors_by_discipline(authors, discipline, leading=True, min_percent=0):
     filtered_list = []
 
     for author in authors:
         if author['alive']:
-            if author['disc1'] == discipline.value and author['disc1_percent'] > min_percent:
-                filtered_list.append(author)
-            if author['disc2'] == discipline.value and author['disc2_percent'] > min_percent:
-                filtered_list.append(author)
+            if leading:
+                if author['disc1'] == discipline.value and author['disc1_percent'] > min_percent:
+                    filtered_list.append(author)
+            else:
+                if author['disc1'] == discipline.value and author['disc1_percent'] > min_percent:
+                    filtered_list.append(author)
+                if author['disc2'] == discipline.value and author['disc2_percent'] > min_percent:
+                    filtered_list.append(author)
 
     return filtered_list
-
 
 def filter_authors_by_faculty_name(authors, faculty_name):
     filtered_list = [a for a in authors if a['faculty'] == faculty_name.value]
@@ -314,7 +317,12 @@ def create_associative_matrix(authors_with_papers, matrix_type, file_name):
                     if matrix_type == 'alive':
                         papers_set[pid][author_index] = paper['eval']['summ_points'] / len(cooauthors)
                     elif matrix_type == 'm':
-                        papers_set[pid][author_index] = paper['eval']['summ_points'] / paper['eval']['wzor_m']
+                        # Dzielenie przez m, jesli jest wez z opdowiedzi API, jesli nie ma wez z ilosci autorow
+                        if paper['eval']['wzor_m'] is not None:
+                            papers_set[pid][author_index] = paper['eval']['summ_points'] / paper['eval']['wzor_m']
+                        else:
+                            papers_set[pid][author_index] = paper['eval']['summ_points'] / len(paper['authors'])
+                            # print(paper['id'], paper['authors'], ': ', paper['title'])
 
                 papers_names[pid] = paper['title']
 
@@ -385,22 +393,22 @@ if __name__ == "__main__":
     # save_data(all_authors, "agh_authors.json")
 
     # get evaluation for WIMIIP
-    #all_authors = load_data("agh_authors.json")
+    all_authors = load_data("agh_authors.json")
 
     # all_authors = filter_authors_by_alive(all_authors)
-    # # all_authors = filter_authors_by_discipline(all_authors, Discipline.INFORMATYKA_TECHNICZNA_I_TELEKOMUNIKACJA)
+    all_authors = filter_authors_by_discipline(all_authors, Discipline.INZYNIERIA_MATERIALOWA)
     # all_authors = filter_authors_by_faculty_name(all_authors, FacultyName.WIMiIP)
     # #
-    # authors_with_papers = get_papers_for(all_authors, 2020, 2020)
+    authors_with_papers = get_papers_for(all_authors, 2017, 2021)
     # evaluated_authors, evaluations_errors = evaluate_authors(authors_with_papers)
     # save_data(evaluations_errors, "WIMIIP_2017-2020.json")
     # save_data(authors_with_papers, "authors_wimiip_2020.json")
     # save_global_evaluation_to_csv(evaluated_authors, 'WIMIIP_2017-2020.csv')
 
     # create associative matrix
-    authors_with_papers = load_data("authors_wimiip_2020.json")
+    # authors_with_papers = load_data("authors_wimiip_2020.json")
 
-    matrix_type = 'alive' # or 'm'
+    matrix_type = 'm' # or 'm'
     create_associative_matrix(authors_with_papers, matrix_type, "WIMIIP_papers_2020.csv")
 
     browser.quit()
