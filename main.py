@@ -1,6 +1,17 @@
-from bpp import load_data, filter_authors_by_discipline, filter_authors_by_alive, get_papers_for, create_associative_matrix, save_data, \
-    save_global_evaluation_to_csv, evaluate_authors
+from bpp import load_data, filter_authors_by_discipline, filter_authors_by_alive, get_papers_for, \
+    create_associative_matrix, save_data, \
+    save_global_evaluation_to_csv, evaluate_authors, finish, filter_authors_by_faculty_name
 from disciplines import Discipline
+from faculties_names import FacultyName
+
+
+def only_authors_from_wimiip(author):
+    return author['faculty'] == FacultyName.WIMiIP.value
+
+
+def no_filter(author):
+    return True
+
 
 if __name__ == "__main__":
     # Make initial cache
@@ -23,6 +34,8 @@ if __name__ == "__main__":
     # create associative matrix
     # authors_with_papers = load_data("authors_wimiip_2020.json")
 
-    matrix_type = 'm' # 'alive' or 'm'
-    create_associative_matrix(authors_with_papers, matrix_type, "imat_papers_2020.csv")
+    matrix_type = 'm'  # 'alive' or 'm'
 
+    create_associative_matrix(authors_with_papers, matrix_type, "imat_papers_2020.csv", no_filter)
+
+    finish()

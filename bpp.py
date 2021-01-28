@@ -281,10 +281,10 @@ def remove_authors_papers(authors):
         authors[i].pop('evaluation', None)
 
 
-def get_paper_authors_from_faculty(authors_with_papers, paper_id, faculty_name):
+def filter_paper_coauthors(authors_with_papers, paper_id, author_filter):
     authors_ids = []
     for author in authors_with_papers:
-        if author['faculty'] == faculty_name:
+        if author_filter(author):
             for paper in author['papers']:
                 if paper['id'] == paper_id and author['alive']:
                     authors_ids.append(author['id'])
@@ -292,7 +292,7 @@ def get_paper_authors_from_faculty(authors_with_papers, paper_id, faculty_name):
     return authors_ids
 
 
-def create_associative_matrix(authors_with_papers, matrix_type, file_name):
+def create_associative_matrix(authors_with_papers, matrix_type, file_name, author_filter):
     papers_set = {}
     authors_ids = []
     authors_names = []
@@ -306,7 +306,7 @@ def create_associative_matrix(authors_with_papers, matrix_type, file_name):
 
     for author in authors_with_papers:
         for paper in author['papers']:
-            cooauthors = get_paper_authors_from_faculty(authors_with_papers, paper['id'], FacultyName.WIMiIP.value)
+            cooauthors = filter_paper_coauthors(authors_with_papers, paper['id'], author_filter)
             pid = paper['id']
             if pid not in papers_set:
                 papers_set[pid] = [0] * len(authors_ids)
@@ -385,3 +385,7 @@ def get_papers_for(authors, from_year, to_year):
         authors[ai]['papers'] = papers_data
 
     return authors
+
+
+def finish():
+    browser.quit()
