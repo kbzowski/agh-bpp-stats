@@ -335,7 +335,9 @@ def create_associative_matrix(authors_with_papers, matrix_type, file_name, autho
             if paper['eval'] is None:
                 pid = paper['id']
                 ai = authors_ids.index(author['id'])
-                papers_set[pid][ai] = 0
+                if pid in papers_set:
+                    papers_set[pid][ai] = 0
+
 
     df = pd.DataFrame(papers_set)
     df.index = authors_names
