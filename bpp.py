@@ -324,7 +324,7 @@ def create_associative_matrix(authors_with_papers, matrix_type, file_name):
                             papers_set[pid][author_index] = paper['eval']['summ_points'] / len(paper['authors'])
                             # print(paper['id'], paper['authors'], ': ', paper['title'])
 
-                papers_names[pid] = paper['title']
+            papers_names[pid] = paper['title']
 
     # Edge case na eval == None
     for author in authors_with_papers:
