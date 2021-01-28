@@ -9,8 +9,12 @@ def only_authors_from_wimiip(author):
     return author['faculty'] == FacultyName.WIMiIP.value
 
 
-def no_filter(author):
+def no_author_filter(author):
     return True
+
+
+def points_paper_filter(paper):
+    return not (paper['eval'] is None) and paper['eval']['summ_points'] > 140
 
 
 if __name__ == "__main__":
@@ -36,6 +40,6 @@ if __name__ == "__main__":
 
     matrix_type = 'm'  # 'alive' or 'm'
 
-    create_associative_matrix(authors_with_papers, matrix_type, "imat_papers_2020.csv", no_filter)
+    create_associative_matrix(authors_with_papers, matrix_type, "imat_papers_2020.csv", no_author_filter, points_paper_filter)
 
     finish()

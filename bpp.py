@@ -292,7 +292,7 @@ def filter_paper_coauthors(authors_with_papers, paper_id, author_filter):
     return authors_ids
 
 
-def create_associative_matrix(authors_with_papers, matrix_type, file_name, author_filter):
+def create_associative_matrix(authors_with_papers, matrix_type, file_name, author_filter, paper_filter):
     papers_set = {}
     authors_ids = []
     authors_names = []
@@ -306,6 +306,9 @@ def create_associative_matrix(authors_with_papers, matrix_type, file_name, autho
 
     for author in authors_with_papers:
         for paper in author['papers']:
+            if not paper_filter(paper):
+                continue
+
             cooauthors = filter_paper_coauthors(authors_with_papers, paper['id'], author_filter)
             pid = paper['id']
             if pid not in papers_set:
