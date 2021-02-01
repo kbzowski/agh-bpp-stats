@@ -322,9 +322,12 @@ def create_associative_matrix(authors_with_papers, matrix_type, file_name, autho
                     elif matrix_type == 'm':
                         # Dzielenie przez m, jesli jest wez z opdowiedzi API, jesli nie ma wez z ilosci autorow
                         if paper['eval']['wzor_m'] is not None:
-                            papers_set[pid][author_index] = paper['eval']['summ_points'] / paper['eval']['wzor_m']
+                            m = paper['eval']['wzor_m']
                         else:
-                            papers_set[pid][author_index] = paper['eval']['summ_points'] / len(paper['authors'])
+                            m = len(paper['authors'])
+                        if m > 10:
+                            m = 10
+                        papers_set[pid][author_index] = paper['eval']['summ_points'] / m
                             # print(paper['id'], paper['authors'], ': ', paper['title'])
 
             papers_names[pid] = paper['title']

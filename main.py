@@ -14,32 +14,50 @@ def no_author_filter(author):
 
 
 def points_paper_filter(paper):
-    return not (paper['eval'] is None) and paper['eval']['summ_points'] > 140
+    return not (paper['eval'] is None) and paper['eval']['summ_points'] > 80
 
 
 if __name__ == "__main__":
+    # -------------------------------------
     # Make initial cache
     # all_authors = make_cache()
     # save_data(all_authors, "agh_authors.json")
-
-    # get evaluation for WIMIIP
-    # all_authors = load_data("agh_authors.json")
-    #
-    # all_authors = filter_authors_by_alive(all_authors)
-    # all_authors = filter_authors_by_discipline(all_authors, Discipline.INZYNIERIA_MATERIALOWA)
-    # # all_authors = filter_authors_by_faculty_name(all_authors, FacultyName.WIMiIP)
-    # # #
-    # authors_with_papers = get_papers_for(all_authors, 2019, 2020)
+    # disc = Discipline.INZYNIERIA_MATERIALOWA
+    # disc = Discipline.INFORMATYKA_TECHNICZNA_I_TELEKOMUNIKACJA
+    # disc = Discipline.INFORMATYKA
+    # disc = Discipline.INZYNIERIA_MECHANICZNA
+    # disc = Discipline.INZYNIERIA_SRODOWISKA_GORNICTWO_I_ENERGETYKA
+    disc = Discipline.INZYNIERIA_BIOMEDYCZNA
+    
+    from_year = 2019
+    to_year = 2020
+    
+    # -------------------------------------
+    # Get authors with papers
+    all_authors = load_data("agh_authors.json")
+    # all_authors = load_data("imat_authors.json")
+    all_authors = filter_authors_by_alive(all_authors)
+    all_authors = filter_authors_by_discipline(all_authors, disc, True)
+    # all_authors = filter_authors_by_faculty_name(all_authors, FacultyName.WIMiIP)
+    save_data(all_authors, "ibio_first_authors.json");
+    
+    authors_with_papers = get_papers_for(all_authors, from_year, to_year)
+    save_data(authors_with_papers, "ibio_first_authors_papers_{0}_{1}.json".format(from_year, to_year))
+    
+    
+    # -------------------------------------
+    # Evaluate authors
+    # authors_with_papers = load_data("imat_authors_papers_{0}_{1}.json".format(from_year, to_year))
     # evaluated_authors, evaluations_errors = evaluate_authors(authors_with_papers)
-    # save_data(evaluations_errors, "imat_errors_2019_2020.json")
-    # save_data(authors_with_papers, "imat_authors_papers_2019_2020.json")
-    # save_global_evaluation_to_csv(evaluated_authors, 'imat_2019_2020.csv')
+    # save_data(evaluations_errors, "imat_errors_{0}_{1}.json".format(from_year, to_year))    
+    # save_global_evaluation_to_csv(evaluated_authors, "imat_{0}_{1}.csv".format(from_year, to_year))
 
-    # create associative matrix
-    # authors_with_papers = load_data("authors_wimiip_2020.json")
 
+    # -------------------------------------
+    # Create associative matrix
+    # authors_with_papers = load_data("wimip_imat_authors_papers_{0}_{1}.json".format(from_year, to_year))
     matrix_type = 'm'  # 'alive' or 'm'
-    authors_with_papers = load_data("imat_authors_papers_2019_2020.json")
-    create_associative_matrix(authors_with_papers, matrix_type, "imat_papers_2020.csv", no_author_filter, points_paper_filter)
+    # authors_with_papers = load_data("itit_authors_papers_2019_2020.json")
+    create_associative_matrix(authors_with_papers, matrix_type, "ibio_first_papers_{0}_{1}.csv".format(from_year, to_year), no_author_filter, points_paper_filter)
 
     finish()
