@@ -1,24 +1,20 @@
 # agh-bpp-stats
-Simple script to create publication statistics for AGH UST employees.
 
-Uses selenium and chromedriver in headless mode for some strange reason.
-It can be easly replaced by BeautifulSoup and request if you want :)
+[![TypeScript version][ts-badge]][typescript-4-4]
+[![Node.js version][nodejs-badge]][nodejs]
+[![APLv2][license-badge]][license]
 
-Requires Python 3 and Windows (for Linux you need to replace chromedriver for appropriate version)
-
-## Installation
-
-1. Install Python 3 (if you don't have it already)
-2. Install pipenv (if you don't have it already): `pip install pipenv` 
-3. Install dependencies: `set PIPENV_VENV_IN_PROJECT=true && pipenv install` 
-4. Start shell: `pipenv shell`
-5. Run script: `python main.py`
-
-## Config
-Some configuration is possible through the parameter section at the bottom of the script.
-You can filter by faculty and range of years.
-Department is a string - correct value can be get on BPP authors list next to employee name.
+## Description
+A simple script for creating publication statistics for AGH UST employees.
 
 ## License
-You can use this script free of charge.
-Please mention this repository if you publish the results or base your work on this project.
+
+Licensed under the MIT License. See the LICENSE for details. If you use the script in your publications or research please provide a link to the repository.
+
+[ts-badge]: https://img.shields.io/badge/TypeScript-4.4-blue.svg
+[nodejs-badge]: https://img.shields.io/badge/Node.js->=%2016-blue.svg
+[nodejs]: https://nodejs.org/dist/latest-v14.x/docs/api/
+[typescript]: https://www.typescriptlang.org/
+[typescript-4-4]: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-4.html
+[license-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[license]: https://github.com/kbzowski/agh-bpp-stats/blob/master/LICENSE

@@ -1,0 +1,32 @@
+{
+  "name": "agh-bpp-stats",
+  "version": "0.1.0",
+  "description": "Analizator danych biblioteki publikacji pracowników AGH",
+  "devDependencies": {
+    "@types/node": "~16.9.4",
+    "@typescript-eslint/eslint-plugin": "~4.31.1",
+    "@typescript-eslint/parser": "~4.31.1",
+    "eslint": "~7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-jest": "~24.4.2",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "prettier": "~2.4.1",
+    "rimraf": "~3.0.2",
+    "ts-jest": "~27.0.5",
+    "tsutils": "~3.21.0",
+    "typescript": "~4.4.3"
+  },
+  "scripts": {
+    "start": "node build/src/main.js",
+    "clean": "rimraf build tmp",
+    "prebuild": "npm run lint",
+    "build": "tsc -p tsconfig.release.json",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "author": "Krzysztof Bzowski <kbzowski@agh.edu.pl>",
+  "dependencies": {
+    "got": "^11.8.2",
+    "query-string": "^7.0.1",
+    "tslib": "~2.3.1"
+  }
+}
