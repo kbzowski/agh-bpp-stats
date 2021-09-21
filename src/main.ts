@@ -7,7 +7,9 @@ import {
   getAuthorDetails,
   getAuthorPublicationsIds,
   getAuthorsDetails,
-  getAuthorsPublications, getPoints, getPublicationDetails,
+  getAuthorsPublications,
+  getPoints,
+  getPublicationDetails,
 } from './bpp';
 import { findDepartmentByName } from './departments';
 import { filterBySkos } from './helpers';
