@@ -34,9 +34,6 @@ export interface Author {
   readonly id_unit:       number;
   readonly lastname:      string;
   readonly unit_abbrev:   string;
-
-  readonly external?:  boolean;
-  readonly id_autor?:  number;
 }
 
 export interface AuthorDetails {
@@ -99,12 +96,12 @@ export interface Years {
   readonly min: number;
 }
 
-export interface Publications {
+export interface PublicationsList {
   readonly count: number;
-  readonly data:  Publication[];
+  readonly data:  PublicationDataBasic[];
 }
 
-export interface Publication {
+export interface PublicationDataBasic {
   readonly afiliated_agh: boolean;
   readonly created_at:    string;
   readonly description:   string;
@@ -121,13 +118,20 @@ export interface Publication {
 }
 
 export interface PublicationDetails {
-  readonly data: PublicationData;
+  readonly data: PublicationDetailsData;
   readonly id:   number;
 }
 
-export interface PublicationData {
+export interface PublicationAuthor {
+  readonly external:  boolean;
+  readonly firstname: string;
+  readonly id_autor:  number;
+  readonly lastname:  string;
+}
+
+export interface PublicationDetailsData {
   readonly abstract:            string[];
-  readonly authors:             Author[];
+  readonly authors:             PublicationAuthor[];
   readonly description:         string;
   readonly doi:                 string;
   readonly has_cover:           boolean;
@@ -141,7 +145,7 @@ export interface PublicationData {
   readonly reviewed:            boolean;
   readonly scopus_indexing:     string;
   readonly title:               string;
-  readonly tytulr:              null;
+  readonly tytulr:              string | null;
   readonly wos_indexing:        string;
   readonly year_of_publication: number;
 }
@@ -161,3 +165,30 @@ export interface Points {
   readonly wzor_p_c: number;
 }
 
+export interface EvalPoints {
+  readonly id_autor:         number;
+  readonly id_dyscypliny:    number;
+  readonly id_publ:          number;
+  readonly id_typpubl:       number;
+  readonly nazwa_dyscypliny: string;
+  readonly rok_wydania:      number;
+  readonly rola:             number;
+  readonly sloty_p_u_:       number;
+  readonly sloty_u_:         number;
+  readonly typ:              string;
+  readonly wzor_k_:          number;
+  readonly wzor_m:           number;
+  readonly wzor_p:           number;
+  readonly wzor_p_c:         number;
+}
+
+interface AuthorsPublications {
+  authorId: number;
+  entries: PublicationDetails[];
+}
+
+export interface PublicationEntry {
+  id:                   number;
+  title:                string;
+  authorsIds:           number[];
+}

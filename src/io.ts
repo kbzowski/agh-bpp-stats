@@ -1,7 +1,12 @@
 import * as fs from 'fs';
 
+const replacer = (key, value) => {
+  if(value instanceof Set) return [...value]
+  return value
+}
+
 export const saveJson = (object: any, filename: string) => {
-  const data = JSON.stringify(object);
+  const data = JSON.stringify(object, replacer, 2);
   fs.writeFileSync(filename, data, 'utf8');
 }
 

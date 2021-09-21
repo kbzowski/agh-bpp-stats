@@ -5,11 +5,12 @@
 [![APLv2][license-badge]][license]
 
 ## Description
-A simple script for creating publication statistics for AGH UST employees.
+A simple script for creating publication statistics for AGH UST employees. Strange variable names in responses and queries are not my idea. I wanted to keep the naming from the BPP2020 API.
 
 ## License
 
 Licensed under the MIT License. See the LICENSE for details. If you use the script in your publications or research please provide a link to the repository.
+
 
 [ts-badge]: https://img.shields.io/badge/TypeScript-4.4-blue.svg
 [nodejs-badge]: https://img.shields.io/badge/Node.js->=%2016-blue.svg

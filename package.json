@@ -26,6 +26,8 @@
   "author": "Krzysztof Bzowski <kbzowski@agh.edu.pl>",
   "dependencies": {
     "got": "^11.8.2",
+    "loglevel": "^1.7.1",
+    "pluralize": "^8.0.0",
     "query-string": "^7.0.1",
     "tslib": "~2.3.1"
   }
