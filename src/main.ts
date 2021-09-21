@@ -1,3 +1,4 @@
+/* eslint-disable unused-imports/no-unused-imports */
 import log from 'loglevel';
 
 import { distinctPublications } from './algorithms';
@@ -13,9 +14,8 @@ import { filterBySkos } from './helpers';
 import { loadJson, saveJson } from './io';
 import { AuthorDetails, AuthorsPublications } from './types';
 
-
 export async function main() {
-  log.setLevel('debug')
+  log.setLevel('debug');
 
   // Pobierz wszystkich pracowników wydziału
   // const dep = findDepartmentByName("Wydział Inżynierii Metali i Informatyki Przemysłowej");
@@ -33,7 +33,9 @@ export async function main() {
   // saveJson(pubsByAuthors, 'authors_wimiip_pubs_2018.json');
 
   // Zapisz publikacje
-  const pubsByAuthors = loadJson<AuthorsPublications[]>("authors_wimiip_pubs_2018.json")
+  const pubsByAuthors = loadJson<AuthorsPublications[]>(
+    'authors_wimiip_pubs_2018.json',
+  );
   const pubs = distinctPublications(pubsByAuthors);
   saveJson(pubs, 'pubs_2018.json');
 

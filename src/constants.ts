@@ -1,1 +1,1 @@
-export const alphabet = Array.from("ABCDEFGHIJKLMNOPQRSTUVWYZ");
+export const alphabet = Array.from('ABCDEFGHIJKLMNOPQRSTUVWYZ');
