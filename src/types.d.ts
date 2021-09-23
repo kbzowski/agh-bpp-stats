@@ -21,10 +21,10 @@ export interface AuthorPubsQuery {
 }
 
 export interface AuthorsList {
-  readonly data: Author[];
+  readonly data: AuthorBase[];
 }
 
-export interface Author {
+export interface AuthorBase {
   readonly count_affi: number;
   readonly count_naffi: number;
   readonly firstname: string;

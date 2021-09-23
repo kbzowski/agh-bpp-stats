@@ -6,7 +6,7 @@ import { stringify } from 'query-string';
 import { alphabet } from './constants';
 import { authorId, authorPersonals, delay } from './helpers';
 import {
-  Author,
+  AuthorBase,
   AuthorDetails,
   AuthorPubsQuery,
   AuthorsList,
@@ -37,8 +37,8 @@ export const getAuthors = async (
 
 export const getAllAuthors = async (
   query: AuthorsListQuery,
-): Promise<Author[]> => {
-  const authors: Author[] = [];
+): Promise<AuthorBase[]> => {
+  const authors: AuthorBase[] = [];
   for (const letter of alphabet) {
     const part = await getAuthors(letter, query);
     authors.push(...part.data);
@@ -53,7 +53,7 @@ export const getAuthorDetails = async (id: number): Promise<AuthorDetails> => {
 };
 
 export const getAuthorsDetails = async (
-  authors: Author[] | number[],
+  authors: AuthorBase[] | number[],
   delayMs = 1000,
 ): Promise<AuthorDetails[]> => {
   const ids = [];
@@ -99,7 +99,7 @@ export const getAuthorPublicationsIds = async (
 };
 
 export const getAuthorsPublications = async (
-  authors: Author[] | AuthorDetails[] | number[],
+  authors: AuthorBase[] | AuthorDetails[] | number[],
   query?: AuthorPubsQuery,
 ): Promise<AuthorsPublications[]> => {
   const authorsPubs = Array<AuthorsPublications>();
@@ -130,7 +130,7 @@ export const getPublicationDetails = async (
 };
 
 export const getPoints = async (
-  author: Author | AuthorDetails | number,
+  author: AuthorBase | AuthorDetails | number,
   pubId: number,
 ): Promise<EvalPoints> | null => {
   const aid = authorId(author);

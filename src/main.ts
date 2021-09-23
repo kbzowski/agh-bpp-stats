@@ -1,60 +1,69 @@
 /* eslint-disable unused-imports/no-unused-imports */
 import log from 'loglevel';
 
-import { distinctPublications } from './algorithms';
+import { distinctPublications, pubsAuthorsAssociation } from './algorithms';
 import {
   getAllAuthors,
-  getAuthorDetails,
-  getAuthorPublicationsIds,
   getAuthorsDetails,
   getAuthorsPublications,
-  getPoints,
-  getPublicationDetails,
 } from './bpp';
 import { findDepartmentByName } from './departments';
 import { filterBySkos } from './helpers';
-import { loadJson, saveJson } from './io';
-import { AuthorDetails, AuthorsPublications } from './types';
+import { loadJson, saveCsv, saveJson } from './io';
+import {
+  AuthorBase,
+  AuthorDetails,
+  AuthorsPublications,
+  PublicationEntry,
+} from './types';
 
 export async function main() {
   log.setLevel('debug');
 
   // Pobierz wszystkich pracowników wydziału
-  // const dep = findDepartmentByName("Wydział Inżynierii Metali i Informatyki Przemysłowej");
-  // const authors = await getAllAuthors({wydzial: dep, rok_od: 2019})
-  // saveJson(authors, 'authors_wimiip_2019.json');
+  {
+    const dep = findDepartmentByName(
+      'Wydział Inżynierii Metali i Informatyki Przemysłowej',
+    );
+    const authors = await getAllAuthors({ wydzial: dep, rok_od: 2019 });
+    saveJson(authors, 'authors.json');
+  }
 
   // Pobierz dane szczegolowe pracownikow
-  // const authorsDetails = await getAuthorsDetails(authors)
-  // saveJson(authorsDetails, 'authors_wimiip_details_2019.json');
+  {
+    const authors = loadJson<AuthorBase[]>('authors.json');
+    const authorsDetails = await getAuthorsDetails(authors);
+    saveJson(authorsDetails, 'authors_details.json');
+  }
 
   // Pobierz publikacje pracownikow
-  // let authorsDetails = loadJson<AuthorDetails[]>('authors_wimiip_details_2019.json')
-  // authorsDetails = filterBySkos(authorsDetails);
-  // const pubsByAuthors: AuthorsPublications[] = await getAuthorsPublications(authorsDetails, {from: 2018});
-  // saveJson(pubsByAuthors, 'authors_wimiip_pubs_2018.json');
+  {
+    let authorsDetails = loadJson<AuthorDetails[]>('authors_details.json');
+    authorsDetails = filterBySkos(authorsDetails);
+    const pubsByAuthors: AuthorsPublications[] = await getAuthorsPublications(
+      authorsDetails,
+      { from: 2019 },
+    );
+    saveJson(pubsByAuthors, 'authors_pubs.json');
+  }
 
-  // Zapisz publikacje
-  const pubsByAuthors = loadJson<AuthorsPublications[]>(
-    'authors_wimiip_pubs_2018.json',
-  );
-  const pubs = distinctPublications(pubsByAuthors);
-  saveJson(pubs, 'pubs_2018.json');
+  // Wczytaj publikacje
+  {
+    const pubsByAuthors = loadJson<AuthorsPublications[]>('authors_pubs.json');
+    const pubs = distinctPublications(pubsByAuthors);
+    saveJson(pubs, 'pubs.json');
+  }
 
-  // console.log(authors)
+  // Zbuduj macierz pracownik-publikacja
+  {
+    const pubs = loadJson('pubs.json') as Set<PublicationEntry>;
+    const authorsDetails = loadJson<AuthorDetails[]>('authors_details.json');
+    const data = pubsAuthorsAssociation(authorsDetails, pubs);
 
-  // const pubs = await getAuthorPublications(5063, {iflf: 1, from: 2019});
-  // console.log(pubs)
-
-  // let authorsDetails = loadJson<AuthorDetails[]>('authorsDetails.json')
-  // authorsDetails = filterBySkos(authorsDetails);
-  // const pubsByAuthors = await getAuthorsPublications(authorsDetails)
-
-  // const pub = await getPublicationDetails(124780);
-  // const points = await getPoints(7213, 124780)
-  //
-  // const x = authorsDetails[0].disciplines[0].label;
-  // console.log(x);
+    const authorsIds = authorsDetails.map((a) => a.id);
+    const papersIds = [...pubs].map((p) => p.id);
+    saveCsv(data, 'association.csv', authorsIds, papersIds);
+  }
 }
 
 void main();
