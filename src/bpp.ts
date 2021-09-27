@@ -1,3 +1,4 @@
+import * as cheerio from 'cheerio';
 import got from 'got';
 import log from 'loglevel';
 import * as pluralize from 'pluralize';
@@ -129,7 +130,7 @@ export const getPublicationDetails = async (
   return response.json<PublicationDetails>();
 };
 
-export const getPoints = async (
+export const getEvalPoints = async (
   author: AuthorBase | AuthorDetails | number,
   pubId: number,
 ): Promise<EvalPoints> | null => {
@@ -140,4 +141,23 @@ export const getPoints = async (
   const data = await response.json<EvalPoints[]>();
   if (data.length > 0) return data[0];
   else return null;
+};
+
+export const getIf = async (
+  author: AuthorBase | AuthorDetails | number,
+  pubId: number,
+): Promise<number> => {
+  const aid = authorId(author);
+  const response = got(
+    `https://bpp.agh.edu.pl/htmle.php?file=publikacja-pktm-iflf.html&id_publ=${pubId}&id_autor=${aid}&html=`,
+  );
+  const result = await response.text();
+  const html = cheerio.load(result);
+
+  // Parse Impact
+  const impact = html('.ocena-iflf').text();
+  const impactGroup = impact.match(/Impact Factor:.((\d*)(\.)*(\d+))/);
+
+  if (impactGroup?.length > 0) return parseFloat(impactGroup[1]);
+  else return 0.0;
 };

@@ -6,6 +6,8 @@ import {
   getAllAuthors,
   getAuthorsDetails,
   getAuthorsPublications,
+  getEvalPoints,
+  getIf,
 } from './bpp';
 import { findDepartmentByName } from './departments';
 import { filterBySkos } from './helpers';
@@ -63,6 +65,18 @@ export async function main() {
     const authorsIds = authorsDetails.map((a) => a.id);
     const papersIds = [...pubs].map((p) => p.id);
     saveCsv(data, 'association.csv', authorsIds, papersIds);
+  }
+
+  // Punktacja dla autora za publikacje
+  {
+    const punktacja = await getEvalPoints(5063, 112572);
+    console.log(punktacja);
+  }
+
+  // Impact Factor dla publikacji (API wymaga ID autora)
+  {
+    const punktacja = await getIf(5063, 112572);
+    console.log(punktacja);
   }
 }
 
