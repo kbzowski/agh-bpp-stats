@@ -24,18 +24,24 @@ export const distinctPublications = (
  *
  * @param {AuthorDetails[]} authors
  * @param {Set<PublicationEntry>} publications
- * @param filename
+ * @param valueResolver Set value on at the intersection of author and publication
  */
 export const pubsAuthorsAssociation = (
   authors: AuthorDetails[],
   publications: Set<PublicationEntry>,
+  valueResolver: (
+    publication: PublicationEntry,
+    author: AuthorDetails,
+  ) => number,
 ) => {
   const data = [];
 
   for (const pub of publications) {
     const item = authors.map((author) => {
-      // 1 jesli autor jest autorem paperu, 0 - jesli nie
-      return pub.authorsIds.some((pa) => pa === author.id) ? 1 : 0; // pa - publication author
+      // true jesli autor jest autorem paperu, false - jesli nie
+      const isAuthor = pub.authorsIds.some((pa) => pa === author.id); // pa - publication author
+      if (isAuthor) return valueResolver(pub, author);
+      return 0;
     });
     data.push(item);
   }

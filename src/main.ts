@@ -12,6 +12,7 @@ import {
 import { findDepartmentByName } from './departments';
 import { filterBySkos } from './helpers';
 import { loadJson, saveCsv, saveJson } from './io';
+import { simpleResolve } from './resolvers';
 import {
   AuthorBase,
   AuthorDetails,
@@ -60,7 +61,7 @@ export async function main() {
   {
     const pubs = loadJson('pubs.json') as Set<PublicationEntry>;
     const authorsDetails = loadJson<AuthorDetails[]>('authors_details.json');
-    const data = pubsAuthorsAssociation(authorsDetails, pubs);
+    const data = pubsAuthorsAssociation(authorsDetails, pubs, simpleResolve);
 
     const authorsIds = authorsDetails.map((a) => a.id);
     const papersIds = [...pubs].map((p) => p.id);
