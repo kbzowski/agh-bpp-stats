@@ -1,6 +1,14 @@
 import 'data-forge-fs';
 
-import { AuthorDetails, AuthorsPublications, PublicationEntry } from './types';
+import { Discipline } from './discipline';
+import { Position } from './positions';
+import {
+  AuthorDetails,
+  AuthorsPublications,
+  AuthorsShares,
+  Department,
+  PublicationEntry,
+} from './types';
 /**
  * Distinguishes non-repeating papers from source
  * @param {AuthorsPublications[]} source
@@ -21,10 +29,11 @@ export const distinctPublications = (
 };
 
 /**
- *
+ * Returns the author/publication connection matrix. The intersection contains the value returned by resolver.
  * @param {AuthorDetails[]} authors
  * @param {Set<PublicationEntry>} publications
  * @param valueResolver Set value on at the intersection of author and publication
+ * @returns {Array<Array<number>>}
  */
 export const pubsAuthorsAssociation = (
   authors: AuthorDetails[],
@@ -33,11 +42,11 @@ export const pubsAuthorsAssociation = (
     publication: PublicationEntry,
     author: AuthorDetails,
   ) => number,
-) => {
-  const data = [];
+): Array<Array<number>> => {
+  const data = new Array<Array<number>>();
 
   for (const pub of publications) {
-    const item = authors.map((author) => {
+    const item = authors.map<number>((author) => {
       // true jesli autor jest autorem paperu, false - jesli nie
       const isAuthor = pub.authorsIds.some((pa) => pa === author.id); // pa - publication author
       if (isAuthor) return valueResolver(pub, author);
@@ -47,4 +56,81 @@ export const pubsAuthorsAssociation = (
   }
 
   return data;
+};
+
+/**
+ * Returns authors evaluated in given discipline
+ * @param {AuthorDetails[]} authors
+ * @param {Discipline} discipline
+ * @param {boolean} onlyPrimary - filter only if discipline is set as primary
+ * @returns {AuthorDetails[]}
+ */
+export const filterByDiscipline = (
+  authors: AuthorDetails[],
+  discipline: Discipline,
+  onlyPrimary: boolean,
+): AuthorDetails[] => {
+  return authors.filter((a) => {
+    if (onlyPrimary)
+      return a.disciplines.some((d) => d.label == discipline && d.is_primary);
+    else return a.disciplines.some((d) => d.label == discipline);
+  });
+};
+
+/**
+ * Returns authors with a link to SKOS in their profile (allows to filter authors who no longer work at the university)
+ * @param {AuthorDetails[]} authors
+ * @returns {AuthorDetails[]}
+ */
+export const filterBySkos = (authors: AuthorDetails[]): AuthorDetails[] => {
+  return authors.filter((a) => a.data.skos_link);
+};
+
+/**
+ * Returns authors filtered by department (faculty)
+ * @param {AuthorDetails[]} authors
+ * @param {Department} department
+ * @returns {AuthorDetails[]}
+ */
+export const filterByFaculty = (
+  authors: AuthorDetails[],
+  department: Department,
+): AuthorDetails[] => {
+  return authors.filter(
+    (a) =>
+      a.data.institution.department.department_id == department.id_department,
+  );
+};
+
+/**
+ * Returns authors working on any of the following positions
+ * @param {AuthorDetails[]} authors
+ * @param {Position[]} positions
+ * @returns {AuthorDetails[]}
+ */
+export const filterByPosition = (
+  authors: AuthorDetails[],
+  positions: Position[],
+): AuthorDetails[] => {
+  return authors.filter((a) =>
+    positions.some((pos) => pos == a.data.stanowisko),
+  );
+};
+
+/**
+ * Merges authors with share ratios of evaluation disciplines
+ * @param {AuthorDetails[]} authors
+ * @param {AuthorsShares} shares
+ */
+export const mergeAuthorsWithShares = (
+  authors: AuthorDetails[],
+  shares: AuthorsShares,
+) => {
+  for (const author of authors) {
+    const id = author.id;
+    if (author.disciplines.length > 0)
+      author.disciplines[0].share = shares[id][0];
+    if (author.disciplines.length > 1)
+      author.disciplines[1].share = shares[id][1];
+  }
 };

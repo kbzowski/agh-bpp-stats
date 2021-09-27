@@ -5,7 +5,7 @@ import * as pluralize from 'pluralize';
 import { stringify } from 'query-string';
 
 import { alphabet } from './constants';
-import { authorId, authorPersonals, delay } from './helpers';
+import { authorId, delay, printable } from './helpers';
 import {
   AuthorBase,
   AuthorDetails,
@@ -13,6 +13,7 @@ import {
   AuthorsList,
   AuthorsListQuery,
   AuthorsPublications,
+  AuthorsShares,
   EvalPoints,
   PublicationDetails,
   PublicationsList,
@@ -26,7 +27,7 @@ export const getAuthors = async (
   const queryStr = stringify({
     rok_od,
     rok_do,
-    wydzial: wydzial.id_department,
+    wydzial: wydzial?.id_department,
   });
 
   log.debug(`Fetching authors for letter: ${letter}`);
@@ -102,12 +103,13 @@ export const getAuthorPublicationsIds = async (
 export const getAuthorsPublications = async (
   authors: AuthorBase[] | AuthorDetails[] | number[],
   query?: AuthorPubsQuery,
+  delayMs = 0,
 ): Promise<AuthorsPublications[]> => {
   const authorsPubs = Array<AuthorsPublications>();
   for (const author of authors) {
     const id = authorId(author);
 
-    log.debug(`Fetching published papers: ${authorPersonals(author)}`);
+    log.debug(`Fetching published papers: ${printable(author)}`);
     const ids = await getAuthorPublicationsIds(id, query);
 
     const pubs = await Promise.all(
@@ -116,6 +118,8 @@ export const getAuthorsPublications = async (
     const count = pubs.length;
     log.debug(`\tFound: ${count} ${pluralize('entry', count)}`);
     authorsPubs.push({ authorId: id, entries: pubs });
+
+    await delay(delayMs);
   }
 
   return authorsPubs;
@@ -160,4 +164,41 @@ export const getIf = async (
 
   if (impactGroup?.length > 0) return parseFloat(impactGroup[1]);
   else return 0.0;
+};
+
+export const getDisciplineShares = async (
+  author: AuthorBase | AuthorDetails | number,
+): Promise<[number, number]> => {
+  const aid = authorId(author);
+  const response = got(`https://bpp.agh.edu.pl/autor/${aid}`);
+  const result = await response.text();
+  const html = cheerio.load(result);
+
+  const disc2Html = html("p[title='dyscyplina 2']")?.first()?.text();
+
+  const shares: [number, number] = [1, 0];
+
+  if (disc2Html) {
+    const discGroup = disc2Html.match(/([0-9][0-9])%/);
+    if (discGroup?.length > 0) {
+      const percent = parseInt(discGroup[1]);
+      shares[1] = percent / 100.0;
+      shares[0] = 1 - percent / 100.0;
+    }
+  }
+
+  return shares;
+};
+
+export const getDisciplinesSharesForAuthors = async (
+  authors: AuthorBase[] | AuthorDetails[] | number[],
+): Promise<AuthorsShares> => {
+  const shares: AuthorsShares = {};
+  for (const author of authors) {
+    log.debug(`Fetching shares ratios of: ${printable(author)}`);
+
+    const id = authorId(author);
+    shares[id] = await getDisciplineShares(id);
+  }
+  return shares;
 };

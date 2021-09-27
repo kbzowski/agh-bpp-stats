@@ -3,27 +3,30 @@
   "version": "0.1.0",
   "description": "Analizator danych biblioteki publikacji pracowników AGH",
   "devDependencies": {
-    "@types/node": "~16.10.1",
-    "@typescript-eslint/eslint-plugin": "~4.31.2",
-    "@typescript-eslint/parser": "~4.31.2",
-    "eslint": "~7.32.0",
+    "@types/node": "^16.10.1",
+    "@typescript-eslint/eslint-plugin": "^4.31.2",
+    "@typescript-eslint/parser": "^4.31.2",
+    "better-docs": "^2.3.2",
+    "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-jest": "~24.4.2",
+    "eslint-plugin-jest": "^24.4.2",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "eslint-plugin-unused-imports": "^1.1.5",
     "prettier": "^2.4.1",
-    "rimraf": "~3.0.2",
-    "ts-jest": "~27.0.5",
-    "tsutils": "~3.21.0",
-    "typescript": "~4.4.3"
+    "rimraf": "^3.0.2",
+    "ts-jest": "^27.0.5",
+    "tsutils": "^3.21.0",
+    "typescript": "^4.4.3",
+    "typedoc": "^0.22.4"
   },
   "scripts": {
     "start": "node build/src/main.js",
     "clean": "rimraf build tmp",
     "prebuild": "npm run lint",
     "build": "tsc -p tsconfig.release.json",
-    "lint": "eslint . --fix --ext .ts,.tsx"
+    "lint": "eslint . --fix --ext .ts,.tsx",
+    "docs": "typedoc --out build/docs --entryPointStrategy expand ./src"
   },
   "author": "Krzysztof Bzowski <kbzowski@agh.edu.pl>",
   "dependencies": {
@@ -35,6 +38,6 @@
     "loglevel": "^1.7.1",
     "pluralize": "^8.0.0",
     "query-string": "^7.0.1",
-    "tslib": "~2.3.1"
+    "tslib": "^2.3.1"
   }
 }

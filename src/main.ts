@@ -1,22 +1,31 @@
 /* eslint-disable unused-imports/no-unused-imports */
 import log from 'loglevel';
 
-import { distinctPublications, pubsAuthorsAssociation } from './algorithms';
+import {
+  distinctPublications,
+  filterByDiscipline,
+  filterByPosition,
+  filterBySkos,
+  mergeAuthorsWithShares,
+  pubsAuthorsAssociation,
+} from './algorithms';
 import {
   getAllAuthors,
   getAuthorsDetails,
   getAuthorsPublications,
-  getEvalPoints,
-  getIf,
+  getDisciplineShares,
+  getDisciplinesSharesForAuthors,
 } from './bpp';
 import { findDepartmentByName } from './departments';
-import { filterBySkos } from './helpers';
+import { Discipline } from './discipline';
 import { loadJson, saveCsv, saveJson } from './io';
+import { Position } from './positions';
 import { simpleResolve } from './resolvers';
 import {
   AuthorBase,
   AuthorDetails,
   AuthorsPublications,
+  AuthorsShares,
   PublicationEntry,
 } from './types';
 
@@ -34,9 +43,9 @@ export async function main() {
 
   // Pobierz dane szczegolowe pracownikow
   {
-    const authors = loadJson<AuthorBase[]>('authors.json');
-    const authorsDetails = await getAuthorsDetails(authors);
-    saveJson(authorsDetails, 'authors_details.json');
+    const authors = loadJson<AuthorBase[]>('agh_authors.json');
+    const authorsDetails = await getAuthorsDetails(authors, 3000);
+    saveJson(authorsDetails, 'agh_authors_details.json');
   }
 
   // Pobierz publikacje pracownikow
@@ -59,7 +68,7 @@ export async function main() {
 
   // Zbuduj macierz pracownik-publikacja
   {
-    const pubs = loadJson('pubs.json') as Set<PublicationEntry>;
+    const pubs = loadJson<Set<PublicationEntry>>('pubs.json');
     const authorsDetails = loadJson<AuthorDetails[]>('authors_details.json');
     const data = pubsAuthorsAssociation(authorsDetails, pubs, simpleResolve);
 
@@ -68,16 +77,29 @@ export async function main() {
     saveCsv(data, 'association.csv', authorsIds, papersIds);
   }
 
-  // Punktacja dla autora za publikacje
+  // Pobierz procentowy udzial dyscyplin
   {
-    const punktacja = await getEvalPoints(5063, 112572);
-    console.log(punktacja);
+    const authorsDetails = loadJson<AuthorDetails[]>(
+      'agh_authors_details.json',
+    );
+
+    const shares: AuthorsShares = await getDisciplinesSharesForAuthors(
+      authorsDetails,
+    );
+    saveJson(shares, 'agh_authors_shares.json');
   }
 
-  // Impact Factor dla publikacji (API wymaga ID autora)
+  // Polacz udzialy w dyscyplinach z info o autorach
   {
-    const punktacja = await getIf(5063, 112572);
-    console.log(punktacja);
+    const authorsDetails = loadJson<AuthorDetails[]>(
+      'agh_authors_details.json',
+    );
+    const shares: AuthorsShares = loadJson<AuthorsShares>(
+      'agh_authors_shares.json',
+    );
+
+    mergeAuthorsWithShares(authorsDetails, shares);
+    saveJson(authorsDetails, 'agh_authors_details_with_shares.json');
   }
 }
 

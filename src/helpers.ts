@@ -1,14 +1,20 @@
 import { AuthorBase, AuthorDetails } from './types';
 
+/**
+ * Waits a set amount of time given in milliseconds. Used to counter systems that detect too many requests.
+ * @param {number} ms
+ * @returns {Promise<any>}
+ */
 export const delay = (ms: number): Promise<any> => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-export const filterBySkos = (arr: AuthorDetails[]): AuthorDetails[] => {
-  return arr.filter((a) => a.data.outer_dbs.id_skos);
-};
-
-export const authorPersonals = (
+/**
+ * Returns authors personals as string. Useful for debugging
+ * @param {AuthorBase | AuthorDetails | number} author
+ * @returns {string}
+ */
+export const printable = (
   author: AuthorBase | AuthorDetails | number,
 ): string => {
   if (typeof author === 'number') return String(author);
@@ -19,6 +25,11 @@ export const authorPersonals = (
   throw new Error('Cannot identify author personalities');
 };
 
+/**
+ * Returns a numeric author ID based on the passed argument.
+ * @param {AuthorBase | AuthorDetails | number} author
+ * @returns {number}
+ */
 export const authorId = (
   author: AuthorBase | AuthorDetails | number,
 ): number => {

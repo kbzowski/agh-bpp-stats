@@ -81,6 +81,7 @@ export interface Discipline {
   readonly code: number;
   readonly is_primary: boolean;
   readonly label: string;
+  share?: number;
 }
 
 export interface Stat {
@@ -191,3 +192,7 @@ export interface PublicationEntry {
   title: string;
   authorsIds: number[];
 }
+
+export type AuthorsShares = {
+  [number]: [number, number];
+};
