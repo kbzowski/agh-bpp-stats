@@ -63,17 +63,24 @@ export const pubsAuthorsAssociation = (
  * @param {AuthorDetails[]} authors
  * @param {Discipline} discipline
  * @param {boolean} onlyPrimary - filter only if discipline is set as primary
+ * @param {number} minShare
  * @returns {AuthorDetails[]}
  */
 export const filterByDiscipline = (
   authors: AuthorDetails[],
   discipline: Discipline,
   onlyPrimary: boolean,
+  minShare = 0,
 ): AuthorDetails[] => {
   return authors.filter((a) => {
     if (onlyPrimary)
-      return a.disciplines.some((d) => d.label == discipline && d.is_primary);
-    else return a.disciplines.some((d) => d.label == discipline);
+      return a.disciplines.some(
+        (d) => d.label == discipline && d.is_primary && d.share > minShare,
+      );
+    else
+      return a.disciplines.some(
+        (d) => d.label == discipline && d.share > minShare,
+      );
   });
 };
 
