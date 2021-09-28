@@ -14,11 +14,11 @@ import {
   getAuthorsDetails,
   getAuthorsPublications,
   getDisciplineShares,
-  getDisciplinesSharesForAuthors,
+  getDisciplinesShares,
 } from './bpp';
 import { findDepartmentByName } from './departments';
 import { Discipline } from './discipline';
-import { loadJson, saveCsv, saveJson } from './io';
+import { loadJson, saveJson, saveMatrixCsv } from './io';
 import { Position } from './positions';
 import { simpleResolver } from './resolvers';
 import {
@@ -79,31 +79,13 @@ export async function main() {
 
     const authorsIds = authorsDetails.map((a) => a.id);
     const papersIds = [...pubs].map((p) => p.id);
-    saveCsv(data, 'association.csv', authorsIds, papersIds);
+    saveMatrixCsv(data, 'association.csv', authorsIds, papersIds);
   }
 
-  // Pobierz procentowy udzial dyscyplin
+  // Pobierz procentowy udzial dyscyplin dla autorow
   {
-    const authorsDetails = loadJson<AuthorDetails[]>(
-      'agh_authors_details.json',
-    );
-
-    const shares: AuthorsShares = await getDisciplinesSharesForAuthors(
-      authorsDetails,
-    );
-    saveJson(shares, 'agh_authors_shares.json');
-  }
-
-  // Polacz udzialy w dyscyplinach z info o autorach
-  {
-    const authorsDetails = loadJson<AuthorDetails[]>(
-      'agh_authors_details.json',
-    );
-    const shares: AuthorsShares = loadJson<AuthorsShares>(
-      'agh_authors_shares.json',
-    );
-
-    mergeAuthorsWithShares(authorsDetails, shares);
+    let authorsDetails = loadJson<AuthorDetails[]>('agh_authors_details.json');
+    authorsDetails = await getDisciplinesShares(authorsDetails);
     saveJson(authorsDetails, 'agh_authors_details_with_shares.json');
   }
 }

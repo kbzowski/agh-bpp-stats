@@ -1,4 +1,4 @@
-import { AuthorBase, AuthorDetails } from './types';
+import { AuthorBase, AuthorDetails, AuthorsPublications } from './types';
 
 /**
  * Waits a set amount of time given in milliseconds. Used to counter systems that detect too many requests.
@@ -38,4 +38,27 @@ export const authorId = (
   if ('id' in author) return author.id;
 
   throw new Error('Cannot identify author id');
+};
+
+/**
+ * Returns information about publication for particular author
+ * @param {AuthorsPublications[]} pubs
+ * @param {number} authorId
+ * @param {number} pubId
+ * @returns {PublicationDetails}
+ */
+export const findPublicationDetails = (
+  pubs: AuthorsPublications[],
+  authorId: number,
+  pubId: number,
+) => {
+  const authorPubs = pubs.find((a) => a.authorId === authorId);
+  return authorPubs.entries.find((p) => p.id === pubId);
+};
+
+/**
+ * Find author details by ID
+ */
+export const findAuthor = (authors: AuthorDetails[], authorId: number) => {
+  return authors.find((a) => a.id == authorId);
 };

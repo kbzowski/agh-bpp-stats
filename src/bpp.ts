@@ -3,6 +3,7 @@ import log from 'loglevel';
 import pluralize from 'pluralize';
 import { stringify } from 'query-string';
 
+import { mergeAuthorsWithShares } from './algorithms';
 import { alphabet } from './constants';
 import { client as got } from './got-client';
 import { authorId, delay, printable } from './helpers';
@@ -199,9 +200,9 @@ export const getDisciplineShares = async (
   return shares;
 };
 
-export const getDisciplinesSharesForAuthors = async (
-  authors: AuthorBase[] | AuthorDetails[] | number[],
-): Promise<AuthorsShares> => {
+export const getDisciplinesShares = async (
+  authors: AuthorDetails[],
+): Promise<AuthorDetails[]> => {
   const shares: AuthorsShares = {};
   for (const author of authors) {
     log.debug(`Fetching shares ratios of: ${printable(author)}`);
@@ -209,5 +210,6 @@ export const getDisciplinesSharesForAuthors = async (
     const id = authorId(author);
     shares[id] = await getDisciplineShares(id);
   }
-  return shares;
+
+  return mergeAuthorsWithShares(authors, shares);
 };

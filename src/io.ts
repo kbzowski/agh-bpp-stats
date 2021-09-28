@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { parse } from 'json2csv';
 import { EOL } from 'os';
 
 const replacer = (key, value) => {
@@ -19,7 +20,12 @@ export const loadJson = <TargetType extends Record<string, any>>(
   return raw as TargetType;
 };
 
-export const saveCsv = (
+export const saveArrayCsv = (data: any[], filename: string) => {
+  const csv = parse(data);
+  fs.writeFileSync(filename, csv, 'utf8');
+};
+
+export const saveMatrixCsv = (
   data: any[][],
   filename: string,
   header?: any[],

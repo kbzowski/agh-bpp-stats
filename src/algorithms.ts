@@ -1,7 +1,11 @@
 import 'data-forge-fs';
 
+import log from 'loglevel';
+
+import { getEvalPoints } from './bpp';
 import { DepartmentAbbreviation, findDepartmentByAbbrev } from './departments';
 import { Discipline } from './discipline';
+import { findAuthor, findPublicationDetails, printable } from './helpers';
 import { Position } from './positions';
 import {
   AuthorDetails,
@@ -10,6 +14,7 @@ import {
   PublicationDetails,
   PublicationEntry,
 } from './types';
+
 /**
  * Distinguishes non-repeating papers from source
  * @param {AuthorsPublications[]} source
@@ -27,22 +32,6 @@ export const distinctPublications = (
   }
 
   return pubs;
-};
-
-/**
- * Returns information about publication for particular author
- * @param {AuthorsPublications[]} pubs
- * @param {number} authorId
- * @param {number} pubId
- * @returns {PublicationDetails}
- */
-const findPublicationDetails = (
-  pubs: AuthorsPublications[],
-  authorId: number,
-  pubId: number,
-) => {
-  const authorPubs = pubs.find((a) => a.authorId === authorId);
-  return authorPubs.entries.find((p) => p.id === pubId);
 };
 
 /**
@@ -151,6 +140,21 @@ export const filterByPosition = (
 };
 
 /**
+ * Returns authors NOT working on any of the following positions
+ * @param {AuthorDetails[]} authors
+ * @param {Position[]} positions
+ * @returns {AuthorDetails[]}
+ */
+export const filteroutPositions = (
+  authors: AuthorDetails[],
+  positions: Position[],
+): AuthorDetails[] => {
+  return authors.filter(
+    (a) => !positions.some((pos) => pos == a.data.stanowisko),
+  );
+};
+
+/**
  * Merges authors with share ratios of evaluation disciplines
  * @param {AuthorDetails[]} authors
  * @param {AuthorsShares} shares
@@ -158,7 +162,7 @@ export const filterByPosition = (
 export const mergeAuthorsWithShares = (
   authors: AuthorDetails[],
   shares: AuthorsShares,
-) => {
+): AuthorDetails[] => {
   for (const author of authors) {
     const id = author.id;
     if (author.disciplines.length > 0)
@@ -166,4 +170,65 @@ export const mergeAuthorsWithShares = (
     if (author.disciplines.length > 1)
       author.disciplines[1].share = shares[id][1];
   }
+  return authors;
+};
+
+/**
+ * Returns an array of author points relative to publications and the given discipline.
+ * @param {AuthorDetails[]} authors
+ * @param {AuthorsPublications[]} authorsPubs
+ * @param {Discipline} discipline
+ * @returns {Promise<any[]>}
+ */
+export const buildPublicationStats = async (
+  authors: AuthorDetails[],
+  authorsPubs: AuthorsPublications[],
+  discipline: Discipline,
+) => {
+  const data = [];
+  for (const author of authorsPubs) {
+    const authorDetails = findAuthor(authors, author.authorId);
+
+    log.debug(`Evaluating: ${printable(authorDetails)}`);
+
+    let slot = 0;
+    let pt = 0;
+
+    for (const pub of author.entries) {
+      const evalPts = await getEvalPoints(author.authorId, pub.id);
+      if (evalPts?.nazwa_dyscypliny == discipline) {
+        slot += evalPts.sloty_u_;
+        pt += evalPts.sloty_p_u_;
+      }
+    }
+
+    const share = authorDetails.disciplines.find(
+      (d) => d.label == discipline,
+    )?.share;
+
+    data.push({
+      authorId: authorDetails.id,
+      author: printable(authorDetails),
+      slot,
+      pt,
+      share,
+    });
+  }
+
+  return data;
+};
+
+/**
+ * Removes publications whose authors are not in the given list of authors
+ * @param {AuthorDetails[]} authors
+ * @param {AuthorsPublications[]} publications
+ * @returns {AuthorsPublications[]}
+ */
+export const syncPubsWithAuthors = (
+  publications: AuthorsPublications[],
+  authors: AuthorDetails[],
+): AuthorsPublications[] => {
+  return publications.filter((pub) => {
+    return authors.find((a) => a.id == pub.authorId);
+  });
 };
