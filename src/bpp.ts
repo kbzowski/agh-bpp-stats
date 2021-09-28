@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import got from 'got';
 import log from 'loglevel';
-import * as pluralize from 'pluralize';
+import pluralize from 'pluralize';
 import { stringify } from 'query-string';
 
 import { alphabet } from './constants';
@@ -88,14 +88,18 @@ export const getAuthorPublicationsIds = async (
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const data = await got<PublicationsList>(
-      `https://bpp2020.agh.edu.pl/api/query/publications/?authorId=${authorId}&${queryStr}&skip=${skip}`,
-    ).json<PublicationsList>();
-    if (data.data.length == 0) break;
+    try {
+      const data = await got<PublicationsList>(
+        `https://bpp2020.agh.edu.pl/api/query/publications/?authorId=${authorId}&${queryStr}&skip=${skip}`,
+      ).json<PublicationsList>();
+      if (data.data.length == 0) break;
 
-    const ids = data.data.map((pub) => pub.id_publ);
-    allPubs.push(...ids);
-    skip += 10;
+      const ids = data.data.map((pub) => pub.id_publ);
+      allPubs.push(...ids);
+      skip += 10;
+    } catch (e) {
+      log.error(e);
+    }
   }
   return allPubs;
 };
@@ -103,7 +107,6 @@ export const getAuthorPublicationsIds = async (
 export const getAuthorsPublications = async (
   authors: AuthorBase[] | AuthorDetails[] | number[],
   query?: AuthorPubsQuery,
-  delayMs = 0,
 ): Promise<AuthorsPublications[]> => {
   const authorsPubs = Array<AuthorsPublications>();
   for (const author of authors) {
@@ -112,14 +115,15 @@ export const getAuthorsPublications = async (
     log.debug(`Fetching published papers: ${printable(author)}`);
     const ids = await getAuthorPublicationsIds(id, query);
 
-    const pubs = await Promise.all(
-      ids.map(async (id) => getPublicationDetails(id)),
-    );
+    const pubs = [];
+    for (const id of ids) {
+      const pub = await getPublicationDetails(id);
+      pubs.push(pub);
+    }
+
     const count = pubs.length;
     log.debug(`\tFound: ${count} ${pluralize('entry', count)}`);
     authorsPubs.push({ authorId: id, entries: pubs });
-
-    await delay(delayMs);
   }
 
   return authorsPubs;
@@ -128,10 +132,15 @@ export const getAuthorsPublications = async (
 export const getPublicationDetails = async (
   id: number,
 ): Promise<PublicationDetails> => {
-  const response = got(
-    `https://bpp2020.agh.edu.pl/api/query/publications/${id}`,
-  );
-  return response.json<PublicationDetails>();
+  try {
+    const response = got(
+      `https://bpp2020.agh.edu.pl/api/query/publications/${id}`,
+    );
+    return response.json<PublicationDetails>();
+  } catch (error) {
+    log.error(error);
+    return null;
+  }
 };
 
 export const getEvalPoints = async (

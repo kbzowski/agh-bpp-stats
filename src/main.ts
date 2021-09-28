@@ -19,11 +19,20 @@ export async function main() {
     Discipline.INFORMATYKA_TECHNICZNA_I_TELEKOMUNIKACJA,
     false,
   );
+
   const pubsByAuthors: AuthorsPublications[] = await getAuthorsPublications(
     authorsDetails,
-    { from: 2019 },
+    { from: 2017 },
   );
-  saveJson(pubsByAuthors, 'authors_pubs.json');
+
+  saveJson(pubsByAuthors, 'it_pubs.json');
+
+  const x = 3;
+  // const pubsByAuthors: AuthorsPublications[] = await getAuthorsPublications(
+  //   authorsDetails,
+  //   { from: 2019 },
+  // );
+  // saveJson(pubsByAuthors, 'authors_pubs.json');
 }
 
 void main();
