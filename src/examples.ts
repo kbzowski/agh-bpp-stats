@@ -4,28 +4,21 @@ import log from 'loglevel';
 import {
   buildPubsAuthorsMatrix,
   distinctPublications,
-  filterByDiscipline,
-  filterByPosition,
   filterBySkos,
-  mergeAuthorsWithShares,
 } from './algorithms';
 import {
   getAllAuthors,
   getAuthorsDetails,
   getAuthorsPublications,
-  getDisciplineShares,
   getDisciplinesShares,
 } from './bpp';
 import { findDepartmentByName } from './departments';
-import { Discipline } from './discipline';
 import { loadJson, saveJson, saveMatrixCsv } from './io';
-import { Position } from './positions';
 import { simpleResolver } from './resolvers';
 import {
   AuthorBase,
   AuthorDetails,
   AuthorsPublications,
-  AuthorsShares,
   PublicationEntry,
 } from './types';
 
