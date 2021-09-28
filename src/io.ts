@@ -20,7 +20,7 @@ export const loadJson = <TargetType extends Record<string, any>>(
 };
 
 export const saveCsv = (
-  data: number[][],
+  data: any[][],
   filename: string,
   header?: any[],
   indexes?: any[],

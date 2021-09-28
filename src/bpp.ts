@@ -1,10 +1,10 @@
 import * as cheerio from 'cheerio';
-import got from 'got';
 import log from 'loglevel';
 import pluralize from 'pluralize';
 import { stringify } from 'query-string';
 
 import { alphabet } from './constants';
+import { client as got } from './got-client';
 import { authorId, delay, printable } from './helpers';
 import {
   AuthorBase,

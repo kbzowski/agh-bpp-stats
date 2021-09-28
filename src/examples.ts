@@ -2,12 +2,12 @@
 import log from 'loglevel';
 
 import {
+  buildPubsAuthorsMatrix,
   distinctPublications,
   filterByDiscipline,
   filterByPosition,
   filterBySkos,
   mergeAuthorsWithShares,
-  pubsAuthorsAssociation,
 } from './algorithms';
 import {
   getAllAuthors,
@@ -20,7 +20,7 @@ import { findDepartmentByName } from './departments';
 import { Discipline } from './discipline';
 import { loadJson, saveCsv, saveJson } from './io';
 import { Position } from './positions';
-import { simpleResolve } from './resolvers';
+import { simpleResolver } from './resolvers';
 import {
   AuthorBase,
   AuthorDetails,
@@ -68,9 +68,14 @@ export async function main() {
 
   // Zbuduj macierz pracownik-publikacja
   {
+    const pubsByAuthors = loadJson<AuthorsPublications[]>('authors_pubs.json');
     const pubs = loadJson<Set<PublicationEntry>>('pubs.json');
     const authorsDetails = loadJson<AuthorDetails[]>('authors_details.json');
-    const data = pubsAuthorsAssociation(authorsDetails, pubs, simpleResolve);
+    const data = await buildPubsAuthorsMatrix(
+      authorsDetails,
+      pubsByAuthors,
+      simpleResolver,
+    );
 
     const authorsIds = authorsDetails.map((a) => a.id);
     const papersIds = [...pubs].map((p) => p.id);

@@ -1,12 +1,13 @@
 import 'data-forge-fs';
 
+import { DepartmentAbbreviation, findDepartmentByAbbrev } from './departments';
 import { Discipline } from './discipline';
 import { Position } from './positions';
 import {
   AuthorDetails,
   AuthorsPublications,
   AuthorsShares,
-  Department,
+  PublicationDetails,
   PublicationEntry,
 } from './types';
 /**
@@ -29,30 +30,54 @@ export const distinctPublications = (
 };
 
 /**
+ * Returns information about publication for particular author
+ * @param {AuthorsPublications[]} pubs
+ * @param {number} authorId
+ * @param {number} pubId
+ * @returns {PublicationDetails}
+ */
+const findPublicationDetails = (
+  pubs: AuthorsPublications[],
+  authorId: number,
+  pubId: number,
+) => {
+  const authorPubs = pubs.find((a) => a.authorId === authorId);
+  return authorPubs.entries.find((p) => p.id === pubId);
+};
+
+/**
  * Returns the author/publication connection matrix. The intersection contains the value returned by resolver.
  * @param {AuthorDetails[]} authors
- * @param {Set<PublicationEntry>} publications
+ * @param {AuthorsPublications[]} authorsPubs
  * @param valueResolver Set value on at the intersection of author and publication
  * @returns {Array<Array<number>>}
  */
-export const pubsAuthorsAssociation = (
+export const buildPubsAuthorsMatrix = async (
   authors: AuthorDetails[],
-  publications: Set<PublicationEntry>,
+  authorsPubs: AuthorsPublications[],
   valueResolver: (
-    publication: PublicationEntry,
+    publication: PublicationDetails,
     author: AuthorDetails,
-  ) => number,
-): Array<Array<number>> => {
-  const data = new Array<Array<number>>();
+  ) => number | Promise<number>,
+): Promise<Array<Array<number | Promise<number>>>> => {
+  const data = [];
+
+  const publications = distinctPublications(authorsPubs);
 
   for (const pub of publications) {
-    const item = authors.map<number>((author) => {
+    const row = [];
+    for (const author of authors) {
       // true jesli autor jest autorem paperu, false - jesli nie
       const isAuthor = pub.authorsIds.some((pa) => pa === author.id); // pa - publication author
-      if (isAuthor) return valueResolver(pub, author);
-      return 0;
-    });
-    data.push(item);
+
+      if (isAuthor) {
+        const pubInfo = findPublicationDetails(authorsPubs, author.id, pub.id);
+        const data = await valueResolver(pubInfo, author);
+        row.push(data);
+      }
+      row.push(0);
+    }
+    data.push(row);
   }
 
   return data;
@@ -96,13 +121,14 @@ export const filterBySkos = (authors: AuthorDetails[]): AuthorDetails[] => {
 /**
  * Returns authors filtered by department (faculty)
  * @param {AuthorDetails[]} authors
- * @param {Department} department
+ * @param {DepartmentAbbreviation} departmentAbbrev
  * @returns {AuthorDetails[]}
  */
 export const filterByFaculty = (
   authors: AuthorDetails[],
-  department: Department,
+  departmentAbbrev: DepartmentAbbreviation,
 ): AuthorDetails[] => {
+  const department = findDepartmentByAbbrev(departmentAbbrev);
   return authors.filter(
     (a) =>
       a.data.institution.department.department_id == department.id_department,

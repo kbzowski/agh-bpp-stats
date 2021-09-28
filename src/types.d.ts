@@ -173,13 +173,13 @@ export interface EvalPoints {
   readonly nazwa_dyscypliny: string;
   readonly rok_wydania: number;
   readonly rola: number;
-  readonly sloty_p_u_: number;
-  readonly sloty_u_: number;
+  readonly sloty_p_u_: number; // punktacja za slot
+  readonly sloty_u_: number; // udział w slocie
   readonly typ: string;
   readonly wzor_k_: number;
   readonly wzor_m: number;
   readonly wzor_p: number;
-  readonly wzor_p_c: number;
+  readonly wzor_p_c: number; // punktacja całkowita
 }
 
 interface AuthorsPublications {
