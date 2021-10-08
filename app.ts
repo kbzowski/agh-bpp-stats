@@ -3,12 +3,7 @@ import log from 'loglevel';
 
 import {
   buildPublicationStats,
-  buildPubsAuthorsMatrix,
-  distinctPublications,
   filterByDiscipline,
-  filterByFaculty,
-  filterByPosition,
-  filterBySkos,
   filteroutPositions,
   syncPubsWithAuthors,
 } from './src/algorithms';
@@ -18,21 +13,13 @@ import {
   getAuthorsPublications,
   getEvalPointsArray,
 } from './src/bpp';
-import {
-  DepartmentAbbreviation,
-  findDepartmentByAbbrev,
-  findDepartmentByName,
-} from './src/departments';
 import { Discipline } from './src/discipline';
-import { printable } from './src/helpers';
-import { loadJson, saveArrayCsv, saveJson, saveMatrixCsv } from './src/io';
+import { loadJson, saveArrayCsv, saveJson } from './src/io';
 import { Position } from './src/positions';
-import { evalResolver } from './src/resolvers';
 import {
   AuthorDetails,
   AuthorPaperEval,
   AuthorsPublications,
-  AuthorsShares,
 } from './src/types';
 
 /**
@@ -90,6 +77,7 @@ async function generateShameList() {
 export async function app() {
   log.setLevel('debug');
 
+  // await bootstrapDatabase();
   await generateShameList();
 
   // // Stworz macierz autor/publikacja z punktami z ewaluacji na przecieciu

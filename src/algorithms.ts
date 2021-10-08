@@ -1,5 +1,3 @@
-import 'data-forge-fs';
-
 import log from 'loglevel';
 
 import { getEvalPoints } from './bpp';
