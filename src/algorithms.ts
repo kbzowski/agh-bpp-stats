@@ -9,8 +9,8 @@ import { findAuthor, findPublicationDetails, printable } from './helpers';
 import { Position } from './positions';
 import {
   AuthorDetails,
+  AuthorPaperEval,
   AuthorsPublications,
-  AuthorsShares,
   PublicationDetails,
   PublicationEntry,
 } from './types';
@@ -155,47 +155,39 @@ export const filteroutPositions = (
 };
 
 /**
- * Merges authors with share ratios of evaluation disciplines
- * @param {AuthorDetails[]} authors
- * @param {AuthorsShares} shares
- */
-export const mergeAuthorsWithShares = (
-  authors: AuthorDetails[],
-  shares: AuthorsShares,
-): AuthorDetails[] => {
-  for (const author of authors) {
-    const id = author.id;
-    if (author.disciplines.length > 0)
-      author.disciplines[0].share = shares[id][0];
-    if (author.disciplines.length > 1)
-      author.disciplines[1].share = shares[id][1];
-  }
-  return authors;
-};
-
-/**
  * Returns an array of author points relative to publications and the given discipline.
  * @param {AuthorDetails[]} authors
  * @param {AuthorsPublications[]} authorsPubs
  * @param {Discipline} discipline
+ * @param {AuthorPaperEval[]} points
  * @returns {Promise<any[]>}
  */
 export const buildPublicationStats = async (
   authors: AuthorDetails[],
   authorsPubs: AuthorsPublications[],
   discipline: Discipline,
+  points?: AuthorPaperEval[],
 ) => {
   const data = [];
+
+  const forceEval = !points;
+
+  const getCachedPoints = (aid, pid) =>
+    points.find((pt) => pt.paperId === pid && pt.authorId === aid)?.points;
+
   for (const author of authorsPubs) {
     const authorDetails = findAuthor(authors, author.authorId);
 
-    log.debug(`Evaluating: ${printable(authorDetails)}`);
+    if (forceEval) log.debug(`Evaluating: ${printable(authorDetails)}`);
 
     let slot = 0;
     let pt = 0;
 
     for (const pub of author.entries) {
-      const evalPts = await getEvalPoints(author.authorId, pub.id);
+      const evalPts = forceEval
+        ? await getEvalPoints(author.authorId, pub.id)
+        : getCachedPoints(author.authorId, pub.id);
+
       if (evalPts?.nazwa_dyscypliny == discipline) {
         slot += evalPts.sloty_u_;
         pt += evalPts.sloty_p_u_;
@@ -212,6 +204,8 @@ export const buildPublicationStats = async (
       slot,
       pt,
       share,
+      faculty: authorDetails.data.institution.department.department_abbrev,
+      group: authorDetails.data.skos_group,
     });
   }
 

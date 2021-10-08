@@ -52,6 +52,7 @@ export interface PersonalData {
   readonly skos_link: string;
   readonly stanowisko: string;
   readonly tytulnauk: string;
+  skos_group?: string;
 }
 
 export interface Institution {
@@ -195,4 +196,10 @@ export interface PublicationEntry {
 
 export type AuthorsShares = {
   [number]: [number, number];
+};
+
+export type AuthorPaperEval = {
+  paperId: number;
+  authorId: number;
+  points: EvalPoints;
 };

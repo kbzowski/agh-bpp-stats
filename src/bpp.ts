@@ -3,18 +3,17 @@ import log from 'loglevel';
 import pluralize from 'pluralize';
 import { stringify } from 'query-string';
 
-import { mergeAuthorsWithShares } from './algorithms';
 import { alphabet } from './constants';
 import { client as got } from './got-client';
-import { authorId, delay, printable } from './helpers';
+import { authorId, delay, findAuthor, printable } from './helpers';
 import {
   AuthorBase,
   AuthorDetails,
+  AuthorPaperEval,
   AuthorPubsQuery,
   AuthorsList,
   AuthorsListQuery,
   AuthorsPublications,
-  AuthorsShares,
   EvalPoints,
   PublicationDetails,
   PublicationsList,
@@ -51,8 +50,20 @@ export const getAllAuthors = async (
 };
 
 export const getAuthorDetails = async (id: number): Promise<AuthorDetails> => {
+  // BPP base data
   const response = got(`https://bpp2020.agh.edu.pl/api/query/authors/${id}`);
-  return response.json<AuthorDetails>();
+  const details = await response.json<AuthorDetails>();
+
+  // Skos
+  if (details.data.skos_link)
+    details.data.skos_group = await getSkosGroup(details.data.skos_link);
+
+  // Discipline shares ratio
+  const shares = await getDisciplineShares(id);
+  if (details.disciplines?.[0]) details.disciplines[0].share = shares[0];
+  if (details.disciplines?.[1]) details.disciplines[1].share = shares[1];
+
+  return details;
 };
 
 export const getAuthorsDetails = async (
@@ -125,6 +136,8 @@ export const getAuthorsPublications = async (
     const count = pubs.length;
     log.debug(`\tFound: ${count} ${pluralize('entry', count)}`);
     authorsPubs.push({ authorId: id, entries: pubs });
+
+    await delay(1000);
   }
 
   return authorsPubs;
@@ -155,6 +168,28 @@ export const getEvalPoints = async (
   const data = await response.json<EvalPoints[]>();
   if (data.length > 0) return data[0];
   else return null;
+};
+
+export const getEvalPointsArray = async (
+  authors: AuthorDetails[],
+  authorsPubs: AuthorsPublications[],
+): Promise<AuthorPaperEval[]> => {
+  const data: AuthorPaperEval[] = [];
+  for (const author of authorsPubs) {
+    const authorDetails = findAuthor(authors, author.authorId);
+    log.debug(`Evaluating: ${printable(authorDetails)}`);
+
+    for (const pub of author.entries) {
+      data.push({
+        paperId: pub.id,
+        authorId: author.authorId,
+        points: await getEvalPoints(author.authorId, pub.id),
+      });
+    }
+
+    await delay(1000);
+  }
+  return data;
 };
 
 export const getIf = async (
@@ -200,16 +235,24 @@ export const getDisciplineShares = async (
   return shares;
 };
 
-export const getDisciplinesShares = async (
-  authors: AuthorDetails[],
-): Promise<AuthorDetails[]> => {
-  const shares: AuthorsShares = {};
-  for (const author of authors) {
-    log.debug(`Fetching shares ratios of: ${printable(author)}`);
-
-    const id = authorId(author);
-    shares[id] = await getDisciplineShares(id);
+export const getSkosGroup = async (skosId: string): Promise<string> => {
+  let result = '';
+  try {
+    const response = await got(`https://skos.agh.edu.pl/autor/${skosId}`);
+    result = response.body;
+  } catch (e) {
+    return '';
   }
 
-  return mergeAuthorsWithShares(authors, shares);
+  const html = cheerio.load(result);
+
+  let grp = '';
+  html('th').each(function (i, v) {
+    const header = html(v).text().trim();
+    if (header === 'Grupa' || header === 'Status') {
+      grp = html(v.nextSibling).text().trim();
+    }
+  });
+
+  return grp;
 };

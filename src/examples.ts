@@ -10,7 +10,6 @@ import {
   getAllAuthors,
   getAuthorsDetails,
   getAuthorsPublications,
-  getDisciplinesShares,
 } from './bpp';
 import { findDepartmentByName } from './departments';
 import { loadJson, saveJson, saveMatrixCsv } from './io';
@@ -73,13 +72,6 @@ export async function main() {
     const authorsIds = authorsDetails.map((a) => a.id);
     const papersIds = [...pubs].map((p) => p.id);
     saveMatrixCsv(data, 'association.csv', authorsIds, papersIds);
-  }
-
-  // Pobierz procentowy udzial dyscyplin dla autorow
-  {
-    let authorsDetails = loadJson<AuthorDetails[]>('agh_authors_details.json');
-    authorsDetails = await getDisciplinesShares(authorsDetails);
-    saveJson(authorsDetails, 'agh_authors_details_with_shares.json');
   }
 }
 
