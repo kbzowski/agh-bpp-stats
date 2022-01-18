@@ -77,7 +77,7 @@ async function generateShameList() {
 export async function app() {
   log.setLevel('debug');
 
-  // await bootstrapDatabase();
+  await bootstrapDatabase();
   await generateShameList();
 
   // // Stworz macierz autor/publikacja z punktami z ewaluacji na przecieciu
