@@ -21,9 +21,8 @@ import { Discipline } from './src/discipline';
 import { printable } from './src/helpers';
 import { loadJson, saveArrayCsv, saveJson, saveMatrixCsv } from './src/io';
 import { Position } from './src/positions';
-import { evalResolver, simpleResolver } from './src/resolvers';
+import { totalPtsDividedByAuthorsResolver } from './src/resolvers';
 import {
-  AuthorBase,
   AuthorDetails,
   AuthorPaperEval,
   AuthorsPublications,
@@ -104,11 +103,11 @@ const fetchAuthors = async () => {
 
 const fetchPubs = async () => {
   // Pobierz publikacje pracownikow
-  let authorsDetails = loadJson<AuthorDetails[]>('authors_details.json');
-  authorsDetails = filterBySkos(authorsDetails);
+  const authorsDetails = loadJson<AuthorDetails[]>('authors_details.json');
+  // authorsDetails = filterBySkos(authorsDetails); // Doktorantow nie ma w SKOS
   const pubsByAuthors: AuthorsPublications[] = await getAuthorsPublications(
     authorsDetails,
-    { from: 2019 },
+    { from: 2021, to: 2021 },
   );
   saveJson(pubsByAuthors, 'authors_pubs.json');
 };
@@ -121,7 +120,7 @@ const authorPubAssociation = async () => {
   const association = await buildPubsAuthorsMatrix(
     authors,
     authorsPubs,
-    simpleResolver,
+    totalPtsDividedByAuthorsResolver(true),
   );
 
   // Zapisz macierz do CSV
@@ -133,8 +132,8 @@ const authorPubAssociation = async () => {
 export async function app() {
   log.setLevel('debug');
 
-  // await fetchAuthors();
-  // await fetchPubs();
+  await fetchAuthors();
+  await fetchPubs();
   await authorPubAssociation();
 }
 

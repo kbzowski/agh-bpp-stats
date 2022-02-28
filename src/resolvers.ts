@@ -16,6 +16,25 @@ export const simpleResolver = (pd: PublicationDetails, a: AuthorDetails) => {
 };
 
 /**
+ * Returns total number of points per publication divided by number of authors
+ * @param {boolean} aghOnly takes only authors from AGH
+ * @returns {(pd: PublicationDetails, a: AuthorDetails) => number}
+ */
+export const totalPtsDividedByAuthorsResolver =
+  (aghOnly: boolean) => (pd: PublicationDetails, a: AuthorDetails) => {
+    let authorsNum = 0;
+    if (aghOnly)
+      authorsNum = pd.data.authors.reduce(
+        (sum, author) => (!author.external ? sum + 1 : sum),
+        0,
+      );
+    else authorsNum = pd.data.authors.length;
+
+    if (pd.data.points) return pd.data.points.wzor_p_c / authorsNum;
+    else return 0;
+  };
+
+/**
  * Returns resolver for slot scoring at given discipline
  * @returns {number}
  * @param discipline
