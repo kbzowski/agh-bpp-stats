@@ -127,14 +127,15 @@ const authorPubAssociation = async () => {
   // Zapisz macierz do CSV
   const headers = authors.map((a) => printable(a));
   const indexes = [...distinctPublications(authorsPubs)].map((p) => p.id);
-  saveMatrixCsv(association, 'IM_association.csv', headers, indexes);
+  saveMatrixCsv(association, 'association.csv', headers, indexes);
 };
 
 export async function app() {
   log.setLevel('debug');
 
-  await fetchAuthors();
-  await fetchPubs();
+  // await fetchAuthors();
+  // await fetchPubs();
+  await authorPubAssociation();
 }
 
 void app();

@@ -1,4 +1,9 @@
-import { AuthorBase, AuthorDetails, AuthorsPublications } from './types';
+import {
+  AuthorBase,
+  AuthorDetails,
+  AuthorsPublications,
+  PublicationDetails,
+} from './types';
 
 /**
  * Waits a set amount of time given in milliseconds. Used to counter systems that detect too many requests.
@@ -51,9 +56,9 @@ export const findPublicationDetails = (
   pubs: AuthorsPublications[],
   authorId: number,
   pubId: number,
-) => {
+): PublicationDetails | null => {
   const authorPubs = pubs.find((a) => a.authorId === authorId);
-  return authorPubs.entries.find((p) => p.id === pubId);
+  return authorPubs?.entries.find((p) => p.id === pubId);
 };
 
 /**
