@@ -3,7 +3,10 @@ import log from 'loglevel';
 
 import {
   buildPublicationStats,
+  buildPubsAuthorsMatrix,
+  distinctPublications,
   filterByDiscipline,
+  filterBySkos,
   filteroutPositions,
   syncPubsWithAuthors,
 } from './src/algorithms';
@@ -13,10 +16,14 @@ import {
   getAuthorsPublications,
   getEvalPointsArray,
 } from './src/bpp';
+import { findDepartmentByName } from './src/departments';
 import { Discipline } from './src/discipline';
-import { loadJson, saveArrayCsv, saveJson } from './src/io';
+import { printable } from './src/helpers';
+import { loadJson, saveArrayCsv, saveJson, saveMatrixCsv } from './src/io';
 import { Position } from './src/positions';
+import { evalResolver, simpleResolver } from './src/resolvers';
 import {
+  AuthorBase,
   AuthorDetails,
   AuthorPaperEval,
   AuthorsPublications,
@@ -74,23 +81,60 @@ async function generateShameList() {
   saveArrayCsv(stats, 'IM_stats.csv');
 }
 
+const fetchAuthors = async () => {
+  const dep = findDepartmentByName(
+    'Wydział Inżynierii Metali i Informatyki Przemysłowej',
+  );
+  const authors = await getAllAuthors({
+    wydzial: dep,
+    rok_od: 2021,
+    rok_do: 2021,
+  });
+  let authorsDetails = await getAuthorsDetails(authors, 3000);
+
+  authorsDetails = filteroutPositions(authorsDetails, [
+    Position.EMERYT,
+    Position.PRACOWNIK_INZYNIERYJNO_TECHNICZNY,
+    Position.SPECJALISTA,
+    Position.STAZYSTA,
+  ]);
+
+  saveJson(authorsDetails, 'authors_details.json');
+};
+
+const fetchPubs = async () => {
+  // Pobierz publikacje pracownikow
+  let authorsDetails = loadJson<AuthorDetails[]>('authors_details.json');
+  authorsDetails = filterBySkos(authorsDetails);
+  const pubsByAuthors: AuthorsPublications[] = await getAuthorsPublications(
+    authorsDetails,
+    { from: 2019 },
+  );
+  saveJson(pubsByAuthors, 'authors_pubs.json');
+};
+
+const authorPubAssociation = async () => {
+  // Stworz macierz autor/publikacja z punktami z ewaluacji na przecieciu
+  const authors = loadJson<AuthorDetails[]>('authors_details.json');
+  const authorsPubs = loadJson<AuthorsPublications[]>('authors_pubs.json');
+
+  const association = await buildPubsAuthorsMatrix(
+    authors,
+    authorsPubs,
+    simpleResolver,
+  );
+
+  // Zapisz macierz do CSV
+  const headers = authors.map((a) => printable(a));
+  const indexes = [...distinctPublications(authorsPubs)].map((p) => p.id);
+  saveMatrixCsv(association, 'IM_association.csv', headers, indexes);
+};
+
 export async function app() {
   log.setLevel('debug');
 
-  await bootstrapDatabase();
-  await generateShameList();
-
-  // // Stworz macierz autor/publikacja z punktami z ewaluacji na przecieciu
-  // const association = await buildPubsAuthorsMatrix(
-  //   authors,
-  //   authorsPubs,
-  //   evalResolver(evalDiscipline),
-  // );
-
-  // // Zapisz macierz do CSV
-  // const headers = authors.map((a) => printable(a));
-  // const indexes = [...distinctPublications(authorsPubs)].map((p) => p.id);
-  // saveMatrixCsv(association, 'IM_association.csv', headers, indexes);
+  await fetchAuthors();
+  await fetchPubs();
 }
 
 void app();
