@@ -69,9 +69,9 @@ export async function main() {
       simpleResolver,
     );
 
-    const authorsIds = authorsDetails.map((a) => a.id);
+    const authorsIds = authorsDetails.map((a) => a.id.toString());
     const papersIds = [...pubs].map((p) => p.id);
-    saveMatrixCsv(data, 'association.csv', authorsIds, papersIds);
+    saveMatrixCsv(data, 'association.csv', [authorsIds], papersIds);
   }
 }
 

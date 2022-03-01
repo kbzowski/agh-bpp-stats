@@ -8,6 +8,7 @@ import {
   filterByDiscipline,
   filterBySkos,
   filteroutPositions,
+  filterPublicationsByPublishedYear,
   syncPubsWithAuthors,
 } from './src/algorithms';
 import {
@@ -109,6 +110,7 @@ const fetchPubs = async () => {
     authorsDetails,
     { from: 2021, to: 2021 },
   );
+  // pubsByAuthors = filterPublicationsByPublishedYear(2021, 2021, pubsByAuthors);
   saveJson(pubsByAuthors, 'authors_pubs.json');
 };
 
@@ -117,16 +119,25 @@ const authorPubAssociation = async () => {
   const authors = loadJson<AuthorDetails[]>('authors_details.json');
   const authorsPubs = loadJson<AuthorsPublications[]>('authors_pubs.json');
 
+  const sortedAuthors = authors.sort((a, b) =>
+    a.data.institution.unit.unit_abbrev.localeCompare(
+      b.data.institution.unit.unit_abbrev,
+    ),
+  );
+
   const association = await buildPubsAuthorsMatrix(
-    authors,
+    sortedAuthors,
     authorsPubs,
-    totalPtsDividedByAuthorsResolver(true),
+    totalPtsDividedByAuthorsResolver,
   );
 
   // Zapisz macierz do CSV
-  const headers = authors.map((a) => printable(a));
-  const indexes = [...distinctPublications(authorsPubs)].map((p) => p.id);
-  saveMatrixCsv(association, 'association.csv', headers, indexes);
+  const names = sortedAuthors.map((a) => printable(a));
+  const deps = sortedAuthors.map((a) => a.data.institution.unit.unit_abbrev);
+  const indexes = [...distinctPublications(authorsPubs)].map(
+    (p) => `${p.title} (${p.id})`,
+  );
+  saveMatrixCsv(association, 'association.csv', [names, deps], indexes);
 };
 
 export async function app() {
@@ -138,3 +149,4 @@ export async function app() {
 }
 
 void app();
+console.log('Finish');

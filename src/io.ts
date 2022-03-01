@@ -28,25 +28,28 @@ export const saveArrayCsv = (data: any[], filename: string) => {
 export const saveMatrixCsv = (
   data: any[][],
   filename: string,
-  header?: any[],
+  headers?: string[][],
   indexes?: any[],
 ) => {
   const stream = fs.createWriteStream(filename);
+  stream.write('\ufeff'); // Poatrzebne dla UTF8-BOM - inaczej Excell wysiwetla krzaczki
 
   // Header
-  if (header) {
-    stream.write('-,');
-    stream.write(header.join(','));
-    stream.write(EOL);
+  if (headers) {
+    for (const header of headers) {
+      stream.write('-;');
+      stream.write(header.join(';'));
+      stream.write(EOL);
+    }
   }
 
   // Data
   for (let i = 0; i < data.length; ++i) {
     if (indexes) {
-      stream.write(`${indexes[i]},`);
+      stream.write(`${indexes[i]};`);
     }
 
-    stream.write(data[i].join(','));
+    stream.write(data[i].join(';'));
     stream.write(EOL);
   }
 };

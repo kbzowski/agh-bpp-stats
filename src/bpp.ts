@@ -116,6 +116,13 @@ export const getAuthorPublicationsIds = async (
   return allPubs;
 };
 
+/**
+ * Returns authors publication matching parameters query.
+ * Note that query parameters take into account the date the publication was submitted to the library, not the date the publication was published!
+ * @param {AuthorBase[] | AuthorDetails[] | number[]} authors
+ * @param {AuthorPubsQuery} query
+ * @returns {Promise<AuthorsPublications[]>}
+ */
 export const getAuthorsPublications = async (
   authors: AuthorBase[] | AuthorDetails[] | number[],
   query?: AuthorPubsQuery,

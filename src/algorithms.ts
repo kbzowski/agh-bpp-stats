@@ -61,8 +61,9 @@ export const buildPubsAuthorsMatrix = async (
         const pubInfo = findPublicationDetails(authorsPubs, author.id, pub.id);
         const data = await valueResolver(pubInfo, author);
         row.push(data);
+      } else {
+        row.push(0);
       }
-      row.push(0);
     }
     data.push(row);
   }
@@ -223,4 +224,26 @@ export const syncPubsWithAuthors = (
   return publications.filter((pub) => {
     return authors.find((a) => a.id == pub.authorId);
   });
+};
+
+/**
+ * Filters the list of publications by publication date (rather than library submission)
+ * @param {number} from
+ * @param {number} to
+ * @param {AuthorsPublications[]} publications
+ * @returns {AuthorsPublications[]}
+ */
+export const filterPublicationsByPublishedYear = (
+  from: number,
+  to: number,
+  publications: AuthorsPublications[],
+): AuthorsPublications[] => {
+  return publications.map((author) => ({
+    ...author,
+    entries: author.entries.filter(
+      (pub) =>
+        pub.data.year_of_publication >= from &&
+        pub.data.year_of_publication <= to,
+    ),
+  }));
 };
