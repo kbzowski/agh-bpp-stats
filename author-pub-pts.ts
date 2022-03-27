@@ -127,7 +127,7 @@ const authorPubAssociation = async () => {
   const association = await buildPubsAuthorsMatrix(
     sortedAuthors,
     authorsPubs,
-    totalPtsDividedByAuthorsResolver,
+    totalPtsDividedByAuthorsResolver(40),
   );
 
   // Zapisz macierz do CSV

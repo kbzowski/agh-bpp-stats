@@ -3,7 +3,7 @@ import log from 'loglevel';
 import { getEvalPoints } from './bpp';
 import { Discipline } from './discipline';
 import { printable } from './helpers';
-import { AuthorDetails, EvalPoints, PublicationDetails } from './types';
+import { AuthorDetails, PublicationDetails } from './types';
 
 /**
  * Returns 1 if author is contributor, 0 - otherwise
@@ -17,29 +17,30 @@ export const simpleResolver = (pd: PublicationDetails, a: AuthorDetails) => {
 
 /**
  * Returns total number of points per publication divided by number of authors
- * @returns {(pd: PublicationDetails, a: AuthorDetails) => number}
+ * @param {number} minTotalPoints Returns 0 if total points is less then minTotalPoints
+ * @returns {(pd: PublicationDetails, a: AuthorDetails) => Promise<number | number>}
  */
-export const totalPtsDividedByAuthorsResolver = async (
-  pd: PublicationDetails,
-  a: AuthorDetails,
-) => {
-  log.debug(`Evaluation of ${printable(a)}: ${pd.data.title}`);
-  const evalPts: EvalPoints = await getEvalPoints(a, pd.id);
+export const totalPtsDividedByAuthorsResolver =
+  (minTotalPoints: number) =>
+  async (pd: PublicationDetails, a: AuthorDetails) => {
+    log.debug(`Evaluation of ${printable(a)}: ${pd.data.title}`);
 
-  // Dzielenie przez m - ilosc autorow z AGH
-  let authorsNum = pd.data.authors.reduce(
-    (sum, author) => (!author.external ? sum + 1 : sum),
-    0,
-  );
+    // Dzielenie przez m - ilosc autorow z AGH
+    let authorsNum = pd.data.authors.reduce(
+      (sum, author) => (!author.external ? sum + 1 : sum),
+      0,
+    );
 
-  // Max 10 autorow
-  if (authorsNum > 10) authorsNum = 10;
+    // Max 10 autorow
+    if (authorsNum > 10) authorsNum = 10;
 
-  // Sprobuj wyliczyc z ewaluacji, a jesli nie ma danych z punktow ogolnych
-  if (evalPts) return evalPts.wzor_p_c / authorsNum;
-  if (pd.data.points) return pd.data.points.wzor_p_c / authorsNum;
-  return 0;
-};
+    if (pd.data.points == null) return 0;
+
+    const total = pd.data.points.wzor_p_c;
+    if (total < minTotalPoints) return 0;
+
+    return pd.data.points.wzor_p_c / authorsNum;
+  };
 
 /**
  * Returns resolver for slot scoring at given discipline
