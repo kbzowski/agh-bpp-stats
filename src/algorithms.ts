@@ -50,7 +50,9 @@ export const buildPubsAuthorsMatrix = async (
   valueResolver: (
     publication: PublicationDetails,
     author: AuthorDetails,
+    args: any[],
   ) => number | Promise<number>,
+  ...args: any[]
 ): Promise<Array<Array<number | Promise<number>>>> => {
   const data = [];
 
@@ -64,7 +66,7 @@ export const buildPubsAuthorsMatrix = async (
 
       if (isAuthor) {
         const pubInfo = findPublicationDetails(authorsPubs, author.id, pub.id);
-        const data = await valueResolver(pubInfo, author);
+        const data = await valueResolver(pubInfo, author, args);
         row.push(data);
       } else {
         row.push(0);

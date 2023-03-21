@@ -141,7 +141,7 @@ export interface PublicationDetailsData {
   readonly indexing: Indexing[];
   readonly jezykpubl: string;
   readonly keywords: Keyword[];
-  readonly points: Points;
+  points: Points;
   readonly publication_type: string;
   readonly reviewed: boolean;
   readonly scopus_indexing: string;
@@ -163,7 +163,7 @@ export interface Keyword {
 }
 
 export interface Points {
-  readonly wzor_p_c: number;
+  wzor_p_c: number;
 }
 
 export interface EvalPoints {

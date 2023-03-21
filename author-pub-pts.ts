@@ -30,19 +30,20 @@ import {
 } from './src/types';
 
 /**
- * Tworzy baze pracownikow i publikacji oraz zapisuje je do pliku
+ * Create database of Agh authors and their publications. Takes all AGH authors from BPP and their publications.
+ * @param from - start year
+ * @param to - end year
  * @returns {Promise<void>}
  */
-async function bootstrapDatabase() {
-  const yearStart = 2017;
-
+async function bootstrapDatabase(from: number, to?: number) {
   let authors = [];
-  authors = await getAllAuthors({ rok_od: yearStart });
+  authors = await getAllAuthors({ rok_od: from, rok_do: to });
   authors = await getAuthorsDetails(authors);
   saveJson(authors, 'agh_authors.json');
 
   const authorsPubs = await getAuthorsPublications(authors, {
-    from: yearStart,
+    from,
+    to,
   });
   saveJson(authorsPubs, 'agh_pubs.json');
 
@@ -51,7 +52,7 @@ async function bootstrapDatabase() {
 }
 
 /**
- * Tworzy liste zawierajace punktacje dla ewaluacji dla kazdego pracownika ktory zadeklarowal dana dyscypline
+ * Creates a list containing scores for evaluations for each employee who has declared a particular discipline
  * @returns {Promise<void>}
  */
 async function generateShameList() {
@@ -87,8 +88,8 @@ const fetchAuthors = async () => {
   );
   const authors = await getAllAuthors({
     wydzial: dep,
-    rok_od: 2021,
-    rok_do: 2021,
+    rok_od: 2022,
+    rok_do: 2022,
   });
   let authorsDetails = await getAuthorsDetails(authors, 3000);
 
@@ -108,13 +109,13 @@ const fetchPubs = async () => {
   // authorsDetails = filterBySkos(authorsDetails); // Doktorantow nie ma w SKOS
   let pubsByAuthors: AuthorsPublications[] = await getAuthorsPublications(
     authorsDetails,
-    { from: 2021, to: 2021 },
+    { from: 2022, to: 2022 },
   );
   saveJson(pubsByAuthors, 'authors_pubs.json');
 };
 
 const authorPubAssociation = async () => {
-  // Stworz macierz autor/publikacja z punktami z ewaluacji na przecieciu
+  // Create an author/publication matrix with evaluation scores at the intersection
   const authors = loadJson<AuthorDetails[]>('authors_details.json');
   const authorsPubs = loadJson<AuthorsPublications[]>('authors_pubs.json');
 
@@ -127,10 +128,10 @@ const authorPubAssociation = async () => {
   const association = await buildPubsAuthorsMatrix(
     sortedAuthors,
     authorsPubs,
-    totalPtsDividedByAuthorsResolver(40),
+    totalPtsDividedByAuthorsResolver(40, 'WIMiIP', authors),
   );
 
-  // Zapisz macierz do CSV
+  // Save the matrix to CSV
   const names = sortedAuthors.map((a) => printable(a));
   const deps = sortedAuthors.map((a) => a.data.institution.unit.unit_abbrev);
   const indexes = [...distinctPublications(authorsPubs)].map(
@@ -141,6 +142,7 @@ const authorPubAssociation = async () => {
 
 export async function authorsPubsPoints() {
   log.setLevel('debug');
+  // await bootstrapDatabase(2022);
 
   // await fetchAuthors();
   // await fetchPubs();

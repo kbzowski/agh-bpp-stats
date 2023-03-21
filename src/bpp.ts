@@ -137,6 +137,11 @@ export const getAuthorsPublications = async (
     const pubs = [];
     for (const id of ids) {
       const pub = await getPublicationDetails(id);
+      if (!pub.data.points) {
+        // if bpp2020 does not have points for the publication, try to get them from slot proxy
+        const evalPoints = await getEvalPoints(author, id);
+        if (evalPoints) pub.data.points = { wzor_p_c: evalPoints.wzor_p_c }; // assign points from bpp
+      }
       pubs.push(pub);
     }
 
