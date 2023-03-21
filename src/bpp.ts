@@ -259,7 +259,7 @@ export const getSkosGroup = async (skosId: string): Promise<string> => {
   const html = cheerio.load(result);
 
   let grp = '';
-  html('th').each(function (i, v) {
+  html('table.info-osoba:first-of-type th').each(function (i, v) {
     const header = html(v).text().trim();
     if (header === 'Grupa' || header === 'Status') {
       grp = html(v.nextSibling).text().trim();

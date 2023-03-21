@@ -22,7 +22,10 @@ import { Discipline } from './src/discipline';
 import { printable } from './src/helpers';
 import { loadJson, saveArrayCsv, saveJson, saveMatrixCsv } from './src/io';
 import { Position } from './src/positions';
-import { totalPtsDividedByAuthorsResolver } from './src/resolvers';
+import {
+  totalPointsInDepartmentResolver,
+  totalPtsDividedByAuthorsResolver,
+} from './src/resolvers';
 import {
   AuthorDetails,
   AuthorPaperEval,
@@ -117,27 +120,38 @@ const fetchPubs = async () => {
 const authorPubAssociation = async () => {
   // Create an author/publication matrix with evaluation scores at the intersection
   const authors = loadJson<AuthorDetails[]>('authors_details.json');
-  const authorsPubs = loadJson<AuthorsPublications[]>('authors_pubs.json');
+  let authorsPubs = loadJson<AuthorsPublications[]>('authors_pubs.json');
 
   const sortedAuthors = authors.sort((a, b) =>
     a.data.institution.unit.unit_abbrev.localeCompare(
       b.data.institution.unit.unit_abbrev,
     ),
   );
+  // Filter publications without any points
+  // TODO: Does not work right now
+  // authorsPubs = authorsPubs
+  //   .map((ap) => {
+  //     ap.entries = ap.entries.filter((p) => p.data.points);
+  //     return ap;
+  //   })
+  //   .filter((ap) => ap.entries.length > 0);
 
   const association = await buildPubsAuthorsMatrix(
     sortedAuthors,
     authorsPubs,
-    totalPtsDividedByAuthorsResolver(40, 'WIMiIP', authors),
+    totalPointsInDepartmentResolver(40, 'WIMiIP', authors),
   );
 
   // Save the matrix to CSV
   const names = sortedAuthors.map((a) => printable(a));
   const deps = sortedAuthors.map((a) => a.data.institution.unit.unit_abbrev);
+  const group = sortedAuthors.map((a) =>
+    a.data.skos_group == 'Emeryt' ? 'emeryt' : a.data.stanowisko,
+  );
   const indexes = [...distinctPublications(authorsPubs)].map(
     (p) => `${p.title} (${p.id})`,
   );
-  saveMatrixCsv(association, 'association.csv', [names, deps], indexes);
+  saveMatrixCsv(association, 'association.csv', [names, deps, group], indexes);
 };
 
 export async function authorsPubsPoints() {

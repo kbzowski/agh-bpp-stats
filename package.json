@@ -37,6 +37,7 @@
     "pluralize": "^8.0.0",
     "query-string": "^7.1.3",
     "ts-node": "^10.9.1",
+    "tsimportlib": "^0.0.3",
     "tslib": "^2.5.0"
   }
 }

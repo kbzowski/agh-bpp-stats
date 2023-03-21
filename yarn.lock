@@ -493,6 +493,7 @@ __metadata:
     rimraf: ^4.4.0
     ts-jest: ^29.0.5
     ts-node: ^10.9.1
+    tsimportlib: ^0.0.3
     tslib: ^2.5.0
     tsutils: ^3.21.0
     typedoc: ^0.23.28
@@ -2261,6 +2262,13 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 090adff1302ab20bd3486e6b4799e90f97726ed39e02b39e566f8ab674fd5bd5f727f43615debbfc580d33c6d9d1c6b1b3ce7d8e3cca3e20530a145ffa232c35
+  languageName: node
+  linkType: hard
+
+"tsimportlib@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "tsimportlib@npm:0.0.3"
+  checksum: 60198d6c4aee93db607f66d2740374c83606e9fe1e77d1d7dc1007ac1bc9b69321913a2c1ac294799a2ad95773ea716b350dddafec378ed69ef681d03a3bfa64
   languageName: node
   linkType: hard
 
